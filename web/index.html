@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000a0f">
+    <title>knoten</title>
+    <meta name="description" content="knoten is a native ios client for tangled, the social coding platform on the at protocol.">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/zeetech.css">
+  </head>
+  <body>
+    <!-- The brand symbol: the robot-head shield with the hidden Z, in the two
+         palette colors the directive names for a dark background. -->
+    <svg class="sprite" aria-hidden="true"><symbol id="zee" viewBox="0 0 83.15 78.82"><path fill="#9655ff" d="M0,41.92V1.98h17.12v5.62c2.31-1.62,4.82-2.99,7.53-4.1.53-.23,1.07-.44,1.6-.63,2.62-.99,5.39-1.71,8.27-2.17,2.26-.41,4.61-.65,7.06-.7,2.42.05,4.77.29,7.04.7,2.88.45,5.65,1.18,8.27,2.17.54.19,1.07.41,1.6.63,2.7,1.1,5.21,2.47,7.53,4.1V1.98h17.11v39.94l-.03,2.22v1.85c-.1,6.41-1.21,12.21-3.27,17.45-.49,1.25-1.02,2.44-1.62,3.59-2.01,4.01-4.6,7.51-7.77,10.56-.43.41-.87.81-1.32,1.2,3.94-6.32,6.26-14.06,6.26-22.41,0-21.35-14.71-35.73-33.39-35.73S7.75,35.03,7.75,56.38c0,8.37,2.33,16.12,6.29,22.44-.46-.4-.91-.81-1.36-1.23-3.16-3.04-5.75-6.54-7.76-10.56-.6-1.15-1.13-2.35-1.62-3.59C1.23,58.2.13,52.4.03,45.99c-.02-.34-.02-.68-.02-1.04l-.02-3.03Z"/><path fill="#fef5bc" d="M48.6,39.24l-28.29,29.93c-2.01-3.74-3.15-8.06-3.15-12.65,0-2.1.24-4.13.69-6.08h10.09v-11.19h20.67Z"/><path fill="#fef5bc" d="M66.54,56.52c0,1.69-.15,3.34-.45,4.94h-10.38v10.95h-21.79l28.6-30.06c2.55,4.07,4.03,8.93,4.03,14.16"/></symbol></svg>
+
+    <a class="skip" href="#main">skip to content</a>
+
+    <header class="top wrap">
+      <a class="brand" href="https://zeetech.io">
+        <svg><use href="#zee"/></svg>
+        <b><i>/</i>zeetech</b>
+      </a>
+      <a class="side" href="/oauth/client-metadata.json">client metadata</a>
+    </header>
+
+    <main id="main" class="wrap">
+      <section class="hero">
+        <p class="eyebrow">atproto / ios</p>
+        <h1>knoten</h1>
+        <p class="tag">a native client for tangled</p>
+        <p class="pitch">
+          Knoten is an independent app view for
+          <a class="inline" href="https://tangled.org">Tangled</a>, the social
+          coding platform built on the AT Protocol. Sign in with your atproto
+          account, read your repositories and pull requests, and keep your code
+          on whichever knot hosts it. It is not built by Tangled and it does not
+          use their brand.
+        </p>
+        <p class="notice">
+          In development. The app is not on the App Store yet. This page exists
+          so the sign in flow has a published client identity to point at, and
+          it will grow as the app does.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="/oauth/client-metadata.json">the client metadata</a>
+          <a class="btn" href="https://tangled.org">tangled</a>
+        </div>
+      </section>
+
+      <section class="facts">
+        <h2 class="head"><span class="sl">/</span>what it does</h2>
+        <dl class="grid">
+          <div>
+            <dt>sign in</dt>
+            <dd>
+              atproto oauth
+              <span class="meta">par, pkce and dpop bound tokens. no app passwords, and the token never leaves the server that issued it.</span>
+            </dd>
+          </div>
+          <div>
+            <dt>your account</dt>
+            <dd>
+              any pds
+              <span class="meta">the account's own server, found from its did document. self hosted included.</span>
+            </dd>
+          </div>
+          <div>
+            <dt>your code</dt>
+            <dd>
+              any knot
+              <span class="meta">repositories stay where they are hosted. the client reads them, it does not move them.</span>
+            </dd>
+          </div>
+          <div>
+            <dt>review</dt>
+            <dd>
+              stacked pulls
+              <span class="meta">round based review, the way tangled models it, instead of one large diff.</span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section>
+        <h2 class="head"><span class="sl">/</span>what it costs</h2>
+        <p class="lead">
+          The client is free. One purchase unlocks the parts that cost something
+          to run or that only a few people need, and there is a tip jar for
+          everyone who would rather buy a coffee than a licence.
+        </p>
+        <dl class="grid">
+          <div>
+            <dt>free</dt>
+            <dd>
+              the client
+              <span class="meta">the feed, your repositories, pull requests and the inbox.</span>
+            </dd>
+          </div>
+          <div>
+            <dt>pro</dt>
+            <dd>
+              one time
+              <span class="meta">custom pds and knots, more than one account, and the ci widgets. the app store shows the price in your currency.</span>
+            </dd>
+          </div>
+          <div>
+            <dt>tips</dt>
+            <dd>
+              optional
+              <span class="meta">three sizes, no subscription, nothing gated behind them.</span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="facts">
+        <h2 class="head"><span class="sl">/</span>the honest state</h2>
+        <p class="lead">
+          Signing in works against a published client identity, and reading your
+          repositories works. The feed, the pull request review and the inbox
+          are being built.
+        </p>
+        <p class="lead">
+          The source is open, and the link lands here once the repository is
+          public.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <div class="legal">
+          <span class="k">zeetech</span> / zoey de souza pessanha consultoria em tecnologia da informação ltda<br>
+          <span class="k">cnpj:</span> 51.907.268/0001-42 / <a href="mailto:zoey.spessanha@zeetech.io">zoey.spessanha@zeetech.io</a> / <a href="https://zeetech.io">zeetech.io</a>
+        </div>
+        <p class="copy">© 2026 zeetech / knoten</p>
+      </div>
+    </footer>
+  </body>
+</html>

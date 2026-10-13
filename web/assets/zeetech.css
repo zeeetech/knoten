@@ -1,0 +1,471 @@
+/* /zeetech web surface for knoten: the landing and the OAuth client identity
+   it publishes. One stylesheet, no build step. Tokens and visual language
+   follow the brand directive; the chrome mirrors the pesque surface so the two
+   read as siblings. Labels use Ubuntu Condensed, the display face is Ubuntu
+   Mono, which is the free substitute the kit ships for MonoLisa. */
+
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/assets/fonts/ubuntu-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/assets/fonts/ubuntu-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/assets/fonts/ubuntu-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/assets/fonts/ubuntu-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu Condensed";
+  src: url("/assets/fonts/ubuntu-condensed-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu Mono";
+  src: url("/assets/fonts/ubuntu-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Ubuntu Mono";
+  src: url("/assets/fonts/ubuntu-mono-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --preto: #000a0f;
+  --roxo: #9655ff;
+  --amarelo: #fef5bc;
+  --branco: #f7f7ff;
+  --roxo-dim: rgba(150, 85, 255, 0.14);
+  --roxo-line: rgba(150, 85, 255, 0.3);
+  --ink: var(--branco);
+  --muted: rgba(247, 247, 255, 0.62);
+  --faint: rgba(247, 247, 255, 0.52);
+  --mono: "Ubuntu Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: "Ubuntu", system-ui, -apple-system, sans-serif;
+  --condensed: "Ubuntu Condensed", "Ubuntu", system-ui, sans-serif;
+  --maxw: 46rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Keep iOS from inflating text, and keep the overscroll area dark so the brand
+   surface is the whole screen instead of a white flash at the edges. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: #000a0f;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  /* dvh tracks the visible viewport on mobile, where 100vh includes the
+     browser chrome and leaves the footer a scroll behind on load. */
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--preto);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+::selection {
+  background: var(--roxo);
+  color: var(--branco);
+}
+
+/* The window-grid backdrop the directive calls for, drawn with gradients
+   rather than the sampler svg so the page stays one small stylesheet. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(120% 90% at 85% -10%, var(--roxo-dim), transparent 55%),
+    linear-gradient(var(--roxo-line) 1px, transparent 1px) 0 0/100% 5.5rem,
+    linear-gradient(90deg, var(--roxo-line) 1px, transparent 1px) 0 0/5.5rem
+      100%;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000,
+    transparent 30%,
+    transparent 92%,
+    #000
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000,
+    transparent 30%,
+    transparent 92%,
+    #000
+  );
+}
+
+/* The stacked color-bars device the directive puts on the left edge of key
+   pages: roxo, amarelo, branco over preto. */
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    var(--roxo) 0 33.33%,
+    var(--amarelo) 33.33% 66.66%,
+    var(--branco) 66.66% 100%
+  );
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(1.4rem, 5vw, 2.4rem);
+}
+
+/* The inlined symbol sprite: present for <use>, out of flow and invisible. */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* -- header ------------------------------------------------- */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* Only the vertical padding: a `padding: x 0` shorthand would wipe the
+     horizontal padding `.wrap` gives the header, gluing the brand to the edge. */
+  padding-top: 1.6rem;
+  padding-bottom: 1.6rem;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.brand svg {
+  width: 1.9rem;
+  height: auto;
+  flex: none;
+}
+.brand b {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+.brand b i {
+  color: var(--amarelo);
+  font-style: normal;
+}
+.side {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.3rem;
+}
+.side:hover {
+  color: var(--ink);
+  background: var(--roxo-dim);
+}
+
+/* -- main --------------------------------------------------- */
+main {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+section {
+  padding: 3.4rem 0;
+}
+.hero {
+  padding-top: 2.6rem;
+}
+.eyebrow {
+  font-family: var(--condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.82rem;
+  color: var(--roxo);
+  margin: 0 0 0.8rem;
+}
+h1 {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  margin: 0 0 0.9rem;
+  text-transform: lowercase;
+  overflow-wrap: anywhere;
+}
+h2.head {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 1.4rem;
+  text-transform: lowercase;
+}
+h2.head .sl {
+  color: var(--amarelo);
+}
+.tag {
+  font-family: var(--mono);
+  font-size: clamp(0.9rem, 2.4vw, 1.05rem);
+  color: var(--roxo);
+  font-style: italic;
+  margin: 0 0 1.6rem;
+}
+.pitch,
+.lead {
+  font-size: clamp(1.02rem, 2.4vw, 1.2rem);
+  color: var(--muted);
+  max-width: 38rem;
+  margin: 0 0 1rem;
+}
+a.inline {
+  color: var(--amarelo);
+  border-bottom: 1px solid var(--roxo-line);
+}
+a.inline:hover {
+  border-bottom-color: var(--amarelo);
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.8rem;
+}
+.btn {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--roxo-line);
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: 0.15s;
+}
+.btn:hover {
+  background: var(--roxo-dim);
+  border-color: var(--roxo);
+}
+.btn.primary {
+  background: var(--roxo);
+  border-color: var(--roxo);
+  color: var(--branco);
+  font-weight: 700;
+}
+.btn.primary:hover {
+  background: #a872ff;
+}
+
+/* -- facts: the configuration the landing reflects ----------- */
+.facts {
+  border-top: 1px solid var(--roxo-line);
+}
+dl.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+dl.grid div {
+  border: 1px solid var(--roxo-line);
+  border-radius: 0.5rem;
+  padding: 1rem 1.1rem;
+  background: rgba(150, 85, 255, 0.05);
+}
+dt {
+  font-family: var(--condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: var(--roxo);
+  margin-bottom: 0.35rem;
+}
+dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+/* The explanation hangs off its value rather than becoming a fourth column,
+   so the card keeps one idea per block. */
+.meta {
+  display: block;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--faint);
+  margin-top: 0.6rem;
+  line-height: 1.55;
+}
+
+/* A notice is the one thing on a page that is not the page's own content, so
+   it is a block of its own with the accent on the edge. */
+.notice {
+  border: 1px solid var(--roxo-line);
+  border-left: 3px solid var(--roxo);
+  border-radius: 0.4rem;
+  padding: 0.9rem 1.1rem;
+  margin: 1.8rem 0 0;
+  max-width: 34rem;
+  background: rgba(150, 85, 255, 0.06);
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* -- footer ------------------------------------------------- */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--roxo-line);
+  margin-top: 2rem;
+}
+footer .wrap {
+  padding-top: 2.4rem;
+  padding-bottom: 3rem;
+}
+footer .legal {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.9;
+}
+footer .legal .k {
+  color: var(--roxo);
+}
+footer .legal a {
+  border-bottom: 1px solid var(--roxo-line);
+}
+footer .legal a:hover {
+  border-bottom-color: var(--amarelo);
+}
+footer .copy {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--faint);
+  margin: 1.6rem 0 0;
+}
+
+/* -- a11y --------------------------------------------------- */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--amarelo);
+  outline-offset: 2px;
+  border-radius: 0.3rem;
+}
+.skip {
+  position: absolute;
+  left: 0.6rem;
+  top: -3rem;
+  z-index: 100;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  color: var(--preto);
+  background: var(--amarelo);
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+}
+.skip:focus {
+  top: 0.6rem;
+}
+
+/* -- small screens ------------------------------------------ */
+@media (max-width: 30rem) {
+  .top {
+    padding-top: 1.1rem;
+    padding-bottom: 1.1rem;
+  }
+  section {
+    padding: 2.6rem 0;
+  }
+  .hero {
+    padding-top: 2rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+  h2.head {
+    font-size: clamp(1.25rem, 5.5vw, 1.6rem);
+  }
+  .cta {
+    gap: 0.6rem;
+  }
+  .btn {
+    padding: 0.8rem 1.1rem;
+  }
+}
+
+/* -- touch -------------------------------------------------- */
+/* A finger needs a bigger target than a cursor. */
+@media (pointer: coarse) {
+  .side {
+    padding: 0.45rem 0.6rem;
+  }
+  .btn {
+    min-height: 2.75rem;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
