@@ -102,6 +102,16 @@ Additions take the trust green and deletions the system red. A file past 300
 lines names what it left out instead of laying it out, because a large patch is
 cheap to fetch and expensive to render.
 
+### Inbox
+
+Two sections. "Needs you" holds pulls and issues opened against your repos by
+other people, newest first; only a pull opens, since there is no issue screen
+yet. "New followers" holds at most five.
+
+The actor is bold and the repo is monospaced, so who and where can be picked out
+without reading the line. An unread row carries a dot in the IDE blue; clearing
+marks everything on screen as read.
+
 ### Server settings (the freemium gate)
 
 `List(.insetGrouped)` under `NavigationStack`. Three sections: the instance in
@@ -258,6 +268,47 @@ plausible name answers 404. They were found by reading the `collections` out of
 `com.atproto.repo.describeRepo`, which is the only authoritative list of what a
 repo holds.
 
+### Inbox
+
+There is no notifications endpoint. Every plausible NSID answers 404, so the
+inbox is composed from what does exist:
+
+| Source | Query | Cost |
+| --- | --- | --- |
+| new followers | `graph.listFollows?subject=<did>` | one round |
+| pulls opened on your repos | `repo.listPulls?subject=<repoDid>` | one round per repo |
+| issues opened on your repos | `repo.listIssues?subject=<repoDid>` | one round per repo |
+
+`graph.listFollows` reads the followers, not the accounts followed: every record
+it answers with names the account as its subject, so the follower is the
+repository the record lives in.
+
+`feed.listStars?subject=<repoDid>` exists too, and is left out on purpose. A
+popular repo carries over a thousand stars, which is noise in a list that is
+meant to hold decisions.
+
+Nothing in any of these payloads carries a handle, so every actor is a DID that
+has to be resolved before it can be shown. The resolutions are capped and run in
+parallel, and an unresolved actor falls back to its DID.
+
+Followers get their own section, capped at five, because an account with
+thousands of them would otherwise bury every pull and issue under a wall of
+follows.
+
+### Background refresh
+
+The badge is the only thing a background run produces, so a run rebuilds the
+inbox far enough to count it and throws the rest away. There is no push in
+0.1.0, and the system decides when a run happens.
+
+`BGTaskScheduler` is unavailable in the iOS simulator: submitting a request
+there fails with `BGTaskSchedulerErrorDomain` code 1. The wiring is therefore
+only verified as far as the identifier being accepted without an exception, and
+the wake itself has to be checked on a device.
+
+Badges need `.badge` authorization, which is asked for the first time the inbox
+appears rather than at launch.
+
 ## Brand surfaces
 
 The app and the landing page are two different surfaces and do not share a
@@ -301,7 +352,8 @@ In:
 - Repos list and file reading, read only.
 - Pull request list, unified diff, and the comments on a pull, all read only.
   Writing a comment would be the first write to the PDS and is still open.
-- Inbox, polling plus background refresh, no push.
+- Inbox, plus background refresh, no push. The refresh is on appear, on pull to
+  refresh, and on the system's own schedule; there is no foreground timer.
 - Server settings with the freemium gate.
 - Paywall, one non-consumable.
 - Tip jar, three consumables.
