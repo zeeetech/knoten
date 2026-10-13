@@ -25,6 +25,28 @@ import Testing
     #expect(resolved.value == "did:plc:abc123")
 }
 
+// Real records carry the `did=` prefix, which is what tangled.org and
+// bsky.app both answer today.
+@Test func readsThePrefixedTXTRecord() async {
+    let transport = StubTransport { request in
+        guard request.url?.path.contains("dns-query") == true else {
+            return .success(http(request.url, 404))
+        }
+        let body = #"{"Answer":[{"name":"_atproto.tangled.org","type":16,"data":"\"did=did:plc:wshs7t2adsemcrrd4snkeqli\""}]}"#
+        return .success(http(request.url, 200, body: body))
+    }
+
+    let resolved = await HandleResolver(transport: transport).resolve("tangled.org")
+    #expect(resolved.value == "did:plc:wshs7t2adsemcrrd4snkeqli")
+}
+
+@Test func rejectsATXTRecordThatIsNotADID() {
+    #expect(HandleResolver.did(fromTXT: "\"hello world\"") == nil)
+    #expect(HandleResolver.did(fromTXT: "\"did=not-a-did\"") == nil)
+    #expect(HandleResolver.did(fromTXT: "\"did=did:plc:abc\"") == "did:plc:abc")
+    #expect(HandleResolver.did(fromTXT: "\"did:plc:abc\"") == "did:plc:abc")
+}
+
 @Test func passesThroughDIDs() async {
     let transport = StubTransport { request in
         .success(http(request.url, 404))

@@ -85,16 +85,20 @@ public struct HandleResolver: Sendable {
             }
             return await JSONDecoder().decode(DNSResponse.self, from: http.data, label: "dns answer for \(handle)")
                 .then { response -> KnotenResult<String> in
-                    let txt = response.answers?
-                        .first { $0.type == 16 }?
-                        .data
-                        .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
-                    guard let did = txt, did.hasPrefix("did:") else {
+                    let raw = response.answers?.first { $0.type == 16 }?.data
+                    guard let did = raw.flatMap(Self.did(fromTXT:)) else {
                         return .failure(.handleNotFound(handle))
                     }
                     return .success(did)
                 }
         }
+    }
+
+    /// The record reads `did=<did>`. Older records carry the bare DID.
+    static func did(fromTXT raw: String) -> String? {
+        let value = raw.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+        let candidate = value.hasPrefix("did=") ? String(value.dropFirst("did=".count)) : value
+        return candidate.hasPrefix("did:") ? candidate : nil
     }
 
     /// Cloudflare and Google both answer with a capitalized `Answer` key.
