@@ -78,6 +78,18 @@ unlock.
 
 ## Screens
 
+### Home feed
+
+The global activity feed, `List(.insetGrouped)` under `NavigationStack`, pull to
+refresh. One row per event: a small glyph, then a line that reads as a sentence.
+
+Names are bold and repo names are monospaced, so who and what can be picked out
+without reading the whole line. A repo description follows on one or two
+secondary lines when there is one.
+
+The timestamp is compact (`18m`, `4h`, `2d`), not the automatic relative style,
+which counts seconds and turns a feed into noise. Past a week it becomes a date.
+
 ### Server settings (the freemium gate)
 
 `List(.insetGrouped)` under `NavigationStack`. Three sections: the instance in
@@ -178,6 +190,32 @@ shared across every call to that host. The API host does not advertise one.
 on the auth header, which rotates on every refresh and differs per account, so
 a multi-account app would never reuse a hit. Cache blobs ourselves instead.
 
+### Feed
+
+`sh.tangled.feed.getTimeline` is the activity feed, and it is global. `limit`
+and `cursor` work; an actor filter does not. The server accepts `did`, `actor`
+or `subject` and ignores all three, returning the same network-wide feed, so
+there is no follows feed in 0.1.0 and none to promise.
+
+The response is `{feed: [{event, eventAt}], cursor}`, and `event` is a union
+discriminated by the fragment of `$type`:
+
+| Variant | Carries |
+| --- | --- |
+| `#followEvent` | `actor`, `subject` |
+| `#repoEvent` | `repo` |
+| `#starEvent` | `actor`, `repo` |
+
+`repo` here is not the `sh.tangled.repo` record. It is a derived summary with
+`owner`, `slug`, `did` and counters, and no `knot`. The record and the summary
+are two types, not one. An unrecognized variant is kept rather than dropped, so
+a new event type on the server does not empty the feed.
+
+The feed is public, but the app only builds it while signed in, because every
+read signs a DPoP proof and the client is built from the session. Showing it to
+a signed out user means a session-less client with an ephemeral key, which
+0.1.0 does not do.
+
 ## Brand surfaces
 
 The app and the landing page are two different surfaces and do not share a
@@ -234,7 +272,9 @@ write to a knot.
   version, expect breakage, keep the wire types in one place.
 - **Rate limit on the PDS.** 3000 requests per five minutes, shared with every
   other call to that host, and `getBlob` carries no `ETag`. The blob cache
-  exists partly because of this. Backoff still has to land before the feed.
+  exists partly because of this. The feed is not affected, since it is served by
+  the API host, but backoff still has to land before the app leans on the PDS at
+  volume.
 - **Widgets are not real time.** WidgetKit refreshes on a budget. A CI widget
   answers "is main green", not "watch this run".
 - **App Store review.** A thin client to a website can trip guideline 4.2. The
