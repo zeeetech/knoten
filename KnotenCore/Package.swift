@@ -10,5 +10,6 @@ let package = Package(
     targets: [
         .target(name: "KnotenCore"),
         .testTarget(name: "KnotenCoreTests", dependencies: ["KnotenCore"]),
+        .executableTarget(name: "knoten-smoke", dependencies: ["KnotenCore"], path: "Smoke"),
     ]
 )
