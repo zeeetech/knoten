@@ -1,0 +1,77 @@
+{
+  "identifier" : "A1B2C3D4",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "1A2B3C4D",
+      "localizations" : [
+        {
+          "description" : "Custom PDS and Knots, multi-account, CI widgets. Pay once.",
+          "displayName" : "Knoten Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "knoten.pro.lifetime",
+      "referenceName" : "Knoten Pro",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "2B3C4D5E",
+      "localizations" : [
+        {
+          "description" : "Quick support.",
+          "displayName" : "Espresso",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "knoten.tip.espresso",
+      "referenceName" : "Espresso",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "3C4D5E6F",
+      "localizations" : [
+        {
+          "description" : "Dev fuel.",
+          "displayName" : "Cappuccino",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "knoten.tip.cappuccino",
+      "referenceName" : "Cappuccino",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "4D5E6F70",
+      "localizations" : [
+        {
+          "description" : "You really mean it.",
+          "displayName" : "Cold Brew",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "knoten.tip.coldbrew",
+      "referenceName" : "Cold Brew",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
