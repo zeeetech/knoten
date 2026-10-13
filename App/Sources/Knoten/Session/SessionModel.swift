@@ -6,8 +6,8 @@ extension OAuthClient {
     /// slash after the scheme, as the atproto profile requires for native
     /// apps.
     static let knoten = OAuthClient(
-        clientID: URL(string: "https://knoten.app/oauth/client-metadata.json")!,
-        redirectURI: URL(string: "app.knoten:/callback")!
+        clientID: URL(string: "https://knoten.zeetech.io/oauth/client-metadata.json")!,
+        redirectURI: URL(string: "io.zeetech.knoten:/callback")!
     )
 }
 

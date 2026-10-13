@@ -39,7 +39,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: io.zeetech.knoten.oauth
             CFBundleURLSchemes:
-              - app.knoten
+              - io.zeetech.knoten
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.zeetech.knoten

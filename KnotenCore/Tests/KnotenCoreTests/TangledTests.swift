@@ -12,7 +12,7 @@ private let repoRecord = """
   "knot": "knot1.tangled.sh",
   "spindle": "spindle1.tangled.sh",
   "description": "Native Tangled client for iOS",
-  "website": "https://knoten.app",
+  "website": "https://example.dev",
   "topics": ["swift", "atproto"],
   "source": "https://tangled.org/zoey/knoten",
   "labels": ["at://did:plc:labeler/sh.tangled.label.definition/self"],

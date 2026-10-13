@@ -1,8 +1,8 @@
 {
-  "client_id": "https://knoten.app/oauth/client-metadata.json",
+  "client_id": "https://knoten.zeetech.io/oauth/client-metadata.json",
   "client_name": "Knoten",
-  "client_uri": "https://knoten.app",
-  "redirect_uris": ["app.knoten:/callback"],
+  "client_uri": "https://knoten.zeetech.io",
+  "redirect_uris": ["io.zeetech.knoten:/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
   "scope": "atproto transition:generic",

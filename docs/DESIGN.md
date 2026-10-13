@@ -137,9 +137,9 @@ The flow is the atproto profile, in order:
 DPoP nonces are mandatory and rotate. The executor retries once on a `400`
 carrying `use_dpop_nonce`, using the nonce from the response header.
 
-Client identity is published at `web/client-metadata.json`, served from the
-`client_id` URL. The redirect is a native scheme in reverse-domain order,
-`app.knoten:/callback`, one slash after the colon, as the spec requires.
+Client identity is published at `web/oauth/client-metadata.json`, served from
+the `client_id` URL. The redirect is a native scheme in reverse-domain order,
+`io.zeetech.knoten:/callback`, one slash after the colon, as the spec requires.
 
 ## Services
 
@@ -207,8 +207,8 @@ write to a knot.
 
 ## Open risks
 
-- **Native redirect acceptance.** The spec allows `app.knoten:/callback`, but
-  real authorization servers have rejected custom schemes (bluesky-social/
+- **Native redirect acceptance.** The spec allows `io.zeetech.knoten:/callback`,
+  but real authorization servers have rejected custom schemes (bluesky-social/
   atproto#2814). Verify against the `tngl.sh` authorization server before
   building the login UI on top of it. Fallback is an in-app loopback listener.
 - **Lexicon churn.** `sh.tangled.*` is alpha and being restructured. Pin a
