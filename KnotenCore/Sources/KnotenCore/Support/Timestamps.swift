@@ -10,4 +10,10 @@ public enum Timestamps {
     public static func date(from text: String) -> Date? {
         try? Date(text, strategy: .iso8601)
     }
+
+    /// The wire form, the shape the server both sends and accepts. UTC, which
+    /// every reader of these handles.
+    public static func string(from date: Date) -> String {
+        date.formatted(.iso8601)
+    }
 }

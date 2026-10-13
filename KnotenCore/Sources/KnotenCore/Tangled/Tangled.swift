@@ -18,4 +18,8 @@ public enum Tangled {
     public static let feedGetTimeline = "sh.tangled.feed.getTimeline"
     public static let feedListComments = "sh.tangled.feed.listComments"
     public static let graphListFollows = "sh.tangled.graph.listFollows"
+
+    /// The record type a comment is written as, and the markup it carries.
+    public static let feedComment = "sh.tangled.feed.comment"
+    public static let markupMarkdown = "sh.tangled.markup.markdown"
 }
