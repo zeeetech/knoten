@@ -141,6 +141,54 @@ Client identity is published at `web/client-metadata.json`, served from the
 `client_id` URL. The redirect is a native scheme in reverse-domain order,
 `app.knoten:/callback`, one slash after the colon, as the spec requires.
 
+## Services
+
+Three hosts, and the difference matters:
+
+| Host | Serves | Auth |
+| --- | --- | --- |
+| the account's PDS | `com.atproto.*`, blobs | DPoP signed session token |
+| `api.tangled.org` | `sh.tangled.*` queries (bobbin) | none, reads are public |
+| `tangled.org` | the web appview, HTML only | n/a, links only |
+
+The PDS is per account and comes from the DID document. The API host is the
+instance, fixed to `api.tangled.org` for tangled.org. The web appview answers
+no XRPC: a `sh.tangled.*` query there returns the 404 page, not JSON.
+
+A session token is bound to the account's PDS. It must not travel to the API
+host or to another account's PDS, so those reads go through `publicGet` and
+`publicData`, which send no credential. Writes against another service will
+need a service auth token minted for that service
+(`com.atproto.server.getServiceAuth`), not the session token.
+
+### Rate limit
+
+The PDS answers `ratelimit-policy: 3000;w=300`: 3000 requests per five minutes,
+shared across every call to that host. The API host does not advertise one.
+`com.atproto.sync.getBlob` sends `cache-control: private` and
+`vary: Authorization`, and no `ETag`.
+
+`vary: Authorization` is why `URLCache` is not the answer. It would key entries
+on the auth header, which rotates on every refresh and differs per account, so
+a multi-account app would never reuse a hit. Cache blobs ourselves instead.
+
+## Blobs
+
+`com.atproto.sync.getBlob` returns the original bytes with no resizing, and an
+avatar can be two megapixels. Two layers:
+
+- `DiskBlobCache` keeps the bytes, bounded by total size, evicting the least
+  recently used first. The key is `did/cid`, hashed before it becomes a
+  filename, and the directory is excluded from backup. Blobs are content
+  addressed, so an entry never goes stale and there is nothing to invalidate:
+  a new avatar is a new CID, which is a new key.
+- `AvatarImageCache` keeps the decoded, downscaled `UIImage`, so a list does
+  not re-decode the same JPEG on every scroll.
+
+`BlobCache` reports no errors on purpose. A cache is not a feature: a miss and
+a failure are the same thing to a caller, so a read returns nil and a write
+gives up.
+
 ## 0.1.0
 
 In:
@@ -165,8 +213,9 @@ write to a knot.
   building the login UI on top of it. Fallback is an in-app loopback listener.
 - **Lexicon churn.** `sh.tangled.*` is alpha and being restructured. Pin a
   version, expect breakage, keep the wire types in one place.
-- **No published app view API contract.** Rate limits are unknown. The feed and
-  repo reads may need caching and backoff earlier than expected.
+- **Rate limit on the PDS.** 3000 requests per five minutes, shared with every
+  other call to that host, and `getBlob` carries no `ETag`. The blob cache
+  exists partly because of this. Backoff still has to land before the feed.
 - **Widgets are not real time.** WidgetKit refreshes on a budget. A CI widget
   answers "is main green", not "watch this run".
 - **App Store review.** A thin client to a website can trip guideline 4.2. The
