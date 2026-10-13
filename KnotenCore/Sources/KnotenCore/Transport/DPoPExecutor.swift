@@ -9,6 +9,10 @@ public struct DPoPResult: Sendable {
         response.statusCode
     }
 
+    public var isSuccess: Bool {
+        (200..<300).contains(status)
+    }
+
     public var body: String {
         String(decoding: data, as: UTF8.self)
     }

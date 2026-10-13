@@ -175,7 +175,8 @@ public struct Authorizer: Sendable {
             key: key,
             nonce: nil
         ).then { result -> KnotenResult<Authorization> in
-            guard result.status == 200 else {
+            // PAR answers 201 Created, per RFC 9126.
+            guard result.isSuccess else {
                 return .failure(.http(status: result.status, body: result.body))
             }
 
@@ -209,7 +210,7 @@ public struct Authorizer: Sendable {
         nonce: String?
     ) async -> KnotenResult<TokenResponse> {
         await form(url: endpoint, fields: fields, key: key, nonce: nonce).then { result -> KnotenResult<TokenResponse> in
-            guard result.status == 200 else {
+            guard result.isSuccess else {
                 return .failure(.http(status: result.status, body: result.body))
             }
             return self.decoder().decode(
