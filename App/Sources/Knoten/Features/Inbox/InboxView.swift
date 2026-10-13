@@ -27,6 +27,9 @@ struct InboxView: View {
         }
         if model == nil {
             model = InboxModel(account: account)
+            // Asked here rather than at launch: this is the screen the badge
+            // would announce, so it is where the ask makes sense.
+            await BackgroundRefresh.requestBadgeAuthorization()
         }
         await model?.load()
     }

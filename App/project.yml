@@ -36,6 +36,10 @@ targets:
         UILaunchScreen: {}
         UIUserInterfaceStyle: Automatic
         ITSAppUsesNonExemptEncryption: false
+        UIBackgroundModes:
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - io.zeetech.knoten.inbox-refresh
         CFBundleURLTypes:
           - CFBundleURLName: io.zeetech.knoten.oauth
             CFBundleURLSchemes:
