@@ -3,37 +3,45 @@ import SwiftUI
 
 @MainActor
 @Observable
-final class PullDetailModel {
+final class RepoItemDetailModel {
     enum DiffState {
         case loading
-        /// The pull carries no patch blob, which a pull opened from a branch
-        /// without rounds does.
+        /// Nothing to show: an issue has no patch, and neither does a pull
+        /// opened from a branch that never carried one.
         case empty
         case ready(Patch)
         case failed(KnotenError)
     }
 
-    private(set) var comments: [FeedComment] = []
-    private(set) var commentFailure: KnotenError?
-    private(set) var diff: DiffState = .loading
-
     /// The state of the comment box: sending, or the reason it did not.
-    private(set) var post: PostState = .idle
-
     enum PostState: Equatable {
         case idle
         case sending
         case failed(String)
     }
 
+    private(set) var comments: [FeedComment] = []
+    private(set) var commentFailure: KnotenError?
+    private(set) var diff: DiffState = .loading
+    private(set) var post: PostState = .idle
+
     private var authors: [String: String] = [:]
 
-    private let pull: PullItem
+    private let item: RepoItem
     private let account: SessionModel.Account
 
-    init(pull: PullItem, account: SessionModel.Account) {
-        self.pull = pull
+    init(item: RepoItem, account: SessionModel.Account) {
+        self.item = item
         self.account = account
+    }
+
+    var isSending: Bool {
+        post == .sending
+    }
+
+    var postFailure: String? {
+        if case .failed(let reason) = post { return reason }
+        return nil
     }
 
     /// Comments and the patch are independent, so they are fetched together.
@@ -52,15 +60,6 @@ final class PullDetailModel {
         return authors[author] ?? author
     }
 
-    var isSending: Bool {
-        post == .sending
-    }
-
-    var postFailure: String? {
-        if case .failed(let reason) = post { return reason }
-        return nil
-    }
-
     /// Posts a comment, then reads the thread back.
     ///
     /// `createRecord` does not echo the record, so reading the comments again is
@@ -69,13 +68,13 @@ final class PullDetailModel {
     func send(_ body: String) async -> Bool {
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        guard let cid = pull.cid else {
-            post = .failed("This pull carries no cid to comment against.")
+        guard let cid = item.cid else {
+            post = .failed("This \(item.kind.singular) carries no cid to comment against.")
             return false
         }
 
         post = .sending
-        let subject = CommentSubject(uri: pull.uri, cid: cid)
+        let subject = CommentSubject(uri: item.uri, cid: cid)
 
         switch await account.writer.comment(on: subject, body: trimmed) {
         case .failure(let error):
@@ -89,7 +88,7 @@ final class PullDetailModel {
     }
 
     private func loadComments() async {
-        switch await account.tangled.listComments(subject: pull.uri, limit: 50) {
+        switch await account.tangled.listComments(subject: item.uri, limit: 50) {
         case .failure(let error):
             commentFailure = error
         case .success(let page):
@@ -112,7 +111,9 @@ final class PullDetailModel {
     /// A round's patch lives on the PDS of whoever wrote the pull, gzipped, so
     /// it is resolved, fetched, inflated and parsed here.
     private func loadPatch() async {
-        guard let blob = pull.value.rounds.last?.patchBlob else {
+        guard case .pull(let pull) = item,
+              let blob = pull.value.rounds.last?.patchBlob
+        else {
             diff = .empty
             return
         }

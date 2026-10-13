@@ -82,12 +82,12 @@ struct InboxView: View {
         }
     }
 
-    /// Only a pull has a screen to open, so only a pull is a link.
+    /// Anything that happened in a repo has a screen to open.
     @ViewBuilder
     private func row(for item: InboxModel.Item, model: InboxModel) -> some View {
-        if case .pull(let pull) = item.kind {
+        if case .work(let work) = item.kind {
             NavigationLink {
-                PullDetailView(pull: pull)
+                RepoItemDetailView(item: work)
             } label: {
                 InboxRow(item: item, actor: model.label(for: item.actor), unread: model.isUnread(item))
             }
@@ -145,14 +145,9 @@ private struct InboxRow: View {
         case .followed:
             return Text(actor).bold() + Text(" followed you")
 
-        case .pull:
+        case .work(let work):
             return Text(actor).bold()
-                + Text(" opened a pull in ")
-                + Text(item.repo ?? "a repo").font(.identifier(.subheadline))
-
-        case .issue:
-            return Text(actor).bold()
-                + Text(" opened an issue in ")
+                + Text(" opened a \(work.kind.singular) in ")
                 + Text(item.repo ?? "a repo").font(.identifier(.subheadline))
         }
     }
@@ -161,18 +156,15 @@ private struct InboxRow: View {
         switch item.kind {
         case .followed:
             return nil
-        case .pull(let pull):
-            return pull.value.title
-        case .issue(let issue):
-            return issue.value.title
+        case .work(let work):
+            return work.title
         }
     }
 
     private var symbol: String {
         switch item.kind {
         case .followed: return "person.badge.plus"
-        case .pull: return "arrow.triangle.pull"
-        case .issue: return "exclamationmark.bubble"
+        case .work(let work): return work.kind.symbol
         }
     }
 }

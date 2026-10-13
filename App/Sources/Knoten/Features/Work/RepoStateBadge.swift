@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The state bobbin derives for a pull, as a small capsule. The palette stays
-/// on the two accents the app already uses.
-struct PullStateBadge: View {
+/// The state bobbin derives for a pull or an issue, as a small capsule. The
+/// palette stays on the two accents the app already uses.
+struct RepoStateBadge: View {
     let state: String
 
     var body: some View {

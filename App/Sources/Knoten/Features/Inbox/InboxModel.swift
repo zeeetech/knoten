@@ -8,8 +8,7 @@ final class InboxModel {
     struct Item: Identifiable, Sendable {
         enum Kind: Sendable {
             case followed
-            case pull(PullItem)
-            case issue(IssueItem)
+            case work(RepoItem)
         }
 
         let id: String
@@ -140,7 +139,7 @@ final class InboxModel {
                         for item in page.items where ATURI.owner(of: item.uri) != me {
                             found.append(Item(
                                 id: item.uri,
-                                kind: .pull(item),
+                                kind: .work(.pull(item)),
                                 actor: ATURI.owner(of: item.uri) ?? me,
                                 repo: name,
                                 date: Timestamps.date(from: item.value.createdAt)
@@ -152,7 +151,7 @@ final class InboxModel {
                         for item in page.items where ATURI.owner(of: item.uri) != me {
                             found.append(Item(
                                 id: item.uri,
-                                kind: .issue(item),
+                                kind: .work(.issue(item)),
                                 actor: ATURI.owner(of: item.uri) ?? me,
                                 repo: name,
                                 date: Timestamps.date(from: item.value.createdAt)

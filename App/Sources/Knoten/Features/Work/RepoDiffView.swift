@@ -6,7 +6,7 @@ import SwiftUI
 /// Lines do not wrap: a diff is read by column, so each file scrolls sideways.
 /// A file past the cap names what it left out instead of laying it out, because
 /// a large patch is cheap to fetch and expensive to render.
-struct PullDiffView: View {
+struct RepoDiffView: View {
     let patch: Patch
 
     var body: some View {

@@ -1,16 +1,41 @@
 import KnotenCore
 import SwiftUI
 
-struct PullsView: View {
+struct RepoItemsView: View {
     @Environment(SessionModel.self) private var session
-    @State private var model: PullsModel?
+    @State private var kind: RepoItem.Kind
+    @State private var model: RepoItemsModel?
+
+    init(kind: RepoItem.Kind) {
+        _kind = State(initialValue: kind)
+    }
 
     var body: some View {
         NavigationStack {
-            content
-                .navigationTitle("Pulls")
+            VStack(spacing: 0) {
+                picker
+                content
+            }
+            .navigationTitle("Work")
         }
-        .task(id: session.account?.did) { await prepare() }
+        .task(id: taskKey) { await prepare() }
+    }
+
+    /// Reloads when either the account or the kind changes, which is the pair
+    /// the list depends on.
+    private var taskKey: String {
+        "\(session.account?.did ?? "-")|\(kind.rawValue)"
+    }
+
+    private var picker: some View {
+        Picker("Kind", selection: $kind) {
+            ForEach(RepoItem.Kind.allCases, id: \.self) { kind in
+                Text(kind.rawValue).tag(kind)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, Theme.Space.lg)
+        .padding(.bottom, Theme.Space.sm)
     }
 
     private func prepare() async {
@@ -18,8 +43,8 @@ struct PullsView: View {
             model = nil
             return
         }
-        if model == nil {
-            model = PullsModel(account: account)
+        if model?.kind != kind {
+            model = RepoItemsModel(kind: kind, account: account)
         }
         await model?.load()
     }
@@ -39,19 +64,19 @@ struct PullsView: View {
                 )
             case .loaded(let sections) where sections.isEmpty:
                 ContentUnavailableView(
-                    "No pull requests",
-                    systemImage: "arrow.triangle.pull",
-                    description: Text("Pulls opened against your repositories show up here.")
+                    "No \(kind.plural)",
+                    systemImage: kind.symbol,
+                    description: Text("\(kind.rawValue) opened against your repositories show up here.")
                 )
             case .loaded(let sections):
                 List {
                     ForEach(sections) { section in
                         Section(section.name) {
-                            ForEach(section.pulls, id: \.uri) { pull in
+                            ForEach(section.items) { item in
                                 NavigationLink {
-                                    PullDetailView(pull: pull)
+                                    RepoItemDetailView(item: item)
                                 } label: {
-                                    PullRow(pull: pull)
+                                    RepoItemRow(item: item)
                                 }
                             }
                         }
@@ -64,28 +89,30 @@ struct PullsView: View {
             ContentUnavailableView(
                 "Not signed in",
                 systemImage: "person.crop.circle.badge.questionmark",
-                description: Text("Sign in from Settings to see your pull requests.")
+                description: Text("Sign in from Settings to see your \(kind.plural).")
             )
         }
     }
 }
 
-private struct PullRow: View {
-    let pull: PullItem
+private struct RepoItemRow: View {
+    let item: RepoItem
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
-            Text(pull.value.title)
+            Text(item.title)
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(2)
 
             HStack(spacing: Theme.Space.sm) {
-                PullStateBadge(state: pull.state)
+                RepoStateBadge(state: item.state)
 
-                Text(pull.branchLabel)
-                    .font(.identifier(.caption))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if let branches = item.branchLabel {
+                    Text(branches)
+                        .font(.identifier(.caption))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
 
             if let comments {
@@ -98,10 +125,10 @@ private struct PullRow: View {
     }
 
     private var comments: String? {
-        switch pull.commentCount {
+        switch item.commentCount {
         case 0: return nil
         case 1: return "1 comment"
-        default: return "\(pull.commentCount) comments"
+        default: return "\(item.commentCount) comments"
         }
     }
 }

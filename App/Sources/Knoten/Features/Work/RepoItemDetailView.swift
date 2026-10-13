@@ -1,26 +1,30 @@
 import KnotenCore
 import SwiftUI
 
-struct PullDetailView: View {
-    let pull: PullItem
+struct RepoItemDetailView: View {
+    let item: RepoItem
 
     @Environment(SessionModel.self) private var session
-    @State private var model: PullDetailModel?
+    @State private var model: RepoItemDetailModel?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Space.lg) {
                 header
                 composerBlock
-                diffBlock
+
+                if item.isPull {
+                    diffBlock
+                }
+
                 commentsBlock
             }
             .padding(Theme.Space.lg)
         }
         .background(Theme.Palette.canvas)
-        .navigationTitle(pull.value.title)
+        .navigationTitle(item.title)
         .navigationBarTitleDisplayMode(.inline)
-        // Keyed on the account, not the pull: the screen is built per pull, and
+        // Keyed on the account, not the item: the screen is built per item, and
         // the session can arrive after it does, in which case the load has to
         // run again.
         .task(id: session.account?.did) { await prepare() }
@@ -29,26 +33,29 @@ struct PullDetailView: View {
     private func prepare() async {
         guard let account = session.account else { return }
         if model == nil {
-            model = PullDetailModel(pull: pull, account: account)
+            model = RepoItemDetailModel(item: item, account: account)
         }
         await model?.load()
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: Theme.Space.sm) {
-            Text(pull.value.title)
+            Text(item.title)
                 .font(.title3.weight(.semibold))
 
             HStack(spacing: Theme.Space.sm) {
-                PullStateBadge(state: pull.state)
-                Text(pull.branchLabel)
-                    .font(.identifier(.caption))
-                    .foregroundStyle(.secondary)
+                RepoStateBadge(state: item.state)
+
+                if let branches = item.branchLabel {
+                    Text(branches)
+                        .font(.identifier(.caption))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             // The body is markdown that may point at blobs; it is shown as it
             // arrives rather than rendered.
-            if let body = pull.value.body, !body.isEmpty {
+            if let body = item.body, !body.isEmpty {
                 Text(body)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -87,7 +94,7 @@ struct PullDetailView: View {
             case .ready(let patch) where patch.isEmpty:
                 note("The patch has no changes to show.")
             case .ready(let patch):
-                PullDiffView(patch: patch)
+                RepoDiffView(patch: patch)
             }
         } else {
             loading("Loading the diff")

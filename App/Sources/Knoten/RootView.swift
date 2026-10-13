@@ -9,8 +9,8 @@ struct RootView: View {
             Tab("Repos", systemImage: "shippingbox") {
                 ReposView()
             }
-            Tab("Pulls", systemImage: "arrow.triangle.pull") {
-                PullsView()
+            Tab("Work", systemImage: "arrow.triangle.pull") {
+                RepoItemsView(kind: .pulls)
             }
             Tab("Inbox", systemImage: "bell") {
                 InboxView()
