@@ -81,8 +81,8 @@ private struct TimelineRow: View {
                         .lineLimit(2)
                 }
 
-                if let date = EventTime.date(from: item.eventAt) {
-                    Text(EventTime.label(for: date))
+                if let date = Timestamps.date(from: item.eventAt) {
+                    Text(RelativeTime.label(for: date))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -131,40 +131,5 @@ private struct TimelineRow: View {
     /// the part worth showing.
     private func variant(of type: String) -> String {
         type.split(separator: "#").last.map(String.init) ?? type
-    }
-}
-
-/// Tangled timestamps arrive both with and without fractional seconds, so the
-/// precise form is tried first.
-@MainActor
-private enum EventTime {
-    private static let precise: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
-    private static let plain = ISO8601DateFormatter()
-
-    static func date(from timestamp: String) -> Date? {
-        precise.date(from: timestamp) ?? plain.date(from: timestamp)
-    }
-
-    /// Short enough to scan in a feed. The automatic relative style counts
-    /// seconds, which is noise in a list.
-    static func label(for date: Date, now: Date = Date()) -> String {
-        let seconds = now.timeIntervalSince(date)
-        switch seconds {
-        case ..<60:
-            return "now"
-        case ..<3_600:
-            return "\(Int(seconds / 60))m"
-        case ..<86_400:
-            return "\(Int(seconds / 3_600))h"
-        case ..<604_800:
-            return "\(Int(seconds / 86_400))d"
-        default:
-            return date.formatted(.dateTime.month(.abbreviated).day())
-        }
     }
 }
