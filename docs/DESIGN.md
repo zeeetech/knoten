@@ -90,6 +90,18 @@ secondary lines when there is one.
 The timestamp is compact (`18m`, `4h`, `2d`), not the automatic relative style,
 which counts seconds and turns a feed into noise. Past a week it becomes a date.
 
+### Pulls
+
+Two screens. The list groups pulls by repo, because that is the only shape the
+server offers, and each row carries the state capsule, the branches in SF Mono
+(`fix -> main`) and the comment count.
+
+The detail stacks the pull's own description, then the diff, then the comments.
+Diff lines never wrap: a diff is read by column, so each file scrolls sideways.
+Additions take the trust green and deletions the system red. A file past 300
+lines names what it left out instead of laying it out, because a large patch is
+cheap to fetch and expensive to render.
+
 ### Server settings (the freemium gate)
 
 `List(.insetGrouped)` under `NavigationStack`. Three sections: the instance in
@@ -216,6 +228,36 @@ read signs a DPoP proof and the client is built from the session. Showing it to
 a signed out user means a session-less client with an ephemeral key, which
 0.1.0 does not do.
 
+### Pulls
+
+`sh.tangled.repo.listPulls` requires a `subject`, the repo DID. There is no
+cross-repo and no global pull list: the global feed carries follow, repo and
+star events only. So the app asks each of the account's repos in turn, and a
+repo whose record carries no `repoDid` cannot be asked at all.
+
+A pull's diff is not an endpoint. Each round of the pull carries a `patchBlob`,
+gzipped `git format-patch` text, and the blob lives on the PDS of whoever wrote
+the pull, not on the repo owner's. Reading a diff is therefore: read the pull,
+take the newest round, read the author's DID out of the pull's AT-URI, resolve
+that DID to a PDS, `com.atproto.sync.getBlob`, inflate, parse. Four network hops
+for one screen, and the reason `Gzip` and `Patch` exist in the core.
+
+Comments are `sh.tangled.feed.comment` records, read with
+`sh.tangled.feed.listComments?subject=<AT-URI>`, which serves a pull and an
+issue alike. Two things about the shape: the body is a markup union
+(`original` plus rendered `text`), not a string, and the payload carries no
+handle, so the author is a DID that has to be resolved before it can be shown.
+
+Pull state is not on the pull record. It is a separate
+`sh.tangled.repo.pull.status` record, written into the repo owner's repository,
+and bobbin folds it into the `state` and `commentCount` that `listPulls`
+returns.
+
+None of these NSIDs are guessable: `repo.pull.listComments` and every other
+plausible name answers 404. They were found by reading the `collections` out of
+`com.atproto.repo.describeRepo`, which is the only authoritative list of what a
+repo holds.
+
 ## Brand surfaces
 
 The app and the landing page are two different surfaces and do not share a
@@ -257,7 +299,8 @@ In:
 - OAuth login, one account.
 - Home feed of activity, read only.
 - Repos list and file reading, read only.
-- Pull request list, unified diff, comment.
+- Pull request list, unified diff, and the comments on a pull, all read only.
+  Writing a comment would be the first write to the PDS and is still open.
 - Inbox, polling plus background refresh, no push.
 - Server settings with the freemium gate.
 - Paywall, one non-consumable.
