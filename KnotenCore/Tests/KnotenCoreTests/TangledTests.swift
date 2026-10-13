@@ -443,3 +443,56 @@ private let timelineResponse = """
     #expect(repo.createdAt == nil)
     #expect(repo.name == "did:plc:owner000000000000000000000/bare")
 }
+
+// Shaped like a real sh.tangled.feed.listComments response. The comment body is
+// a markup union, not a string, and the payload carries no handle: the author
+// is only the DID inside the record's AT-URI.
+private let commentPage = """
+{
+  "items": [
+    {
+      "body": {
+        "$type": "sh.tangled.markup.markdown",
+        "original": "neat :)",
+        "text": "neat :)"
+      },
+      "cid": "bafyreigrmz565w5n2wjjtfhe7zqzze3ymnvqjmnavpv2pqwtfnhrn2xpaq",
+      "createdAt": "2026-09-24T19:30:32+03:00",
+      "subject": {
+        "cid": "bafyreiglwzb7uwrvyirpqugadiuktesi3kv67pxc3qjntania7hl6nunqu",
+        "uri": "at://did:plc:pdp6hoacxbs62srfxvrybs2o/sh.tangled.repo.pull/3mwaygxq3rp22"
+      },
+      "uri": "at://did:plc:3xpaniu6rs7fygzthgmtuv7c/sh.tangled.feed.comment/3mwboja6uwz22"
+    }
+  ],
+  "total": 1
+}
+"""
+
+@Test func decodesAPageOfComments() throws {
+    let page = try JSONDecoder().decode(FeedCommentPage.self, from: Data(commentPage.utf8))
+
+    #expect(page.total == 1)
+    #expect(page.items.count == 1)
+
+    let comment = try #require(page.items.first)
+    #expect(comment.body.plain == "neat :)")
+    #expect(comment.author == "did:plc:3xpaniu6rs7fygzthgmtuv7c")
+    #expect(comment.subject.uri == "at://did:plc:pdp6hoacxbs62srfxvrybs2o/sh.tangled.repo.pull/3mwaygxq3rp22")
+    #expect(comment.subject.cid == "bafyreiglwzb7uwrvyirpqugadiuktesi3kv67pxc3qjntania7hl6nunqu")
+}
+
+@Test func fallsBackToTheOriginalMarkupWhenThereIsNoRenderedText() throws {
+    let data = Data(#"{"body": {"original": "raw **markdown**"}, "uri": "at://did:plc:someone/sh.tangled.feed.comment/1", "createdAt": "2026-01-01T00:00:00Z", "subject": {"uri": "at://did:plc:author/sh.tangled.repo.pull/1"}}"#.utf8)
+    let comment = try JSONDecoder().decode(FeedComment.self, from: data)
+
+    #expect(comment.body.text == nil)
+    #expect(comment.body.plain == "raw **markdown**")
+}
+
+@Test func readsNoAuthorOutOfAMalformedURI() throws {
+    let data = Data(#"{"body": {"text": "hi"}, "uri": "not-an-at-uri", "createdAt": "2026-01-01T00:00:00Z", "subject": {"uri": "at://did:plc:author/sh.tangled.repo.pull/1"}}"#.utf8)
+    let comment = try JSONDecoder().decode(FeedComment.self, from: data)
+
+    #expect(comment.author == nil)
+}

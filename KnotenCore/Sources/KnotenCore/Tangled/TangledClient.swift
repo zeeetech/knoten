@@ -158,4 +158,22 @@ public struct TangledClient: Sendable {
             on: api
         )
     }
+
+    /// sh.tangled.feed.listComments: comments on a record. `subject` is the
+    /// record's AT-URI, so the same call serves a pull or an issue.
+    public func listComments(
+        subject: String,
+        cursor: String? = nil,
+        limit: Int? = nil
+    ) async -> KnotenResult<FeedCommentPage> {
+        await client.publicGet(
+            Tangled.feedListComments,
+            params: [
+                "subject": subject,
+                "cursor": cursor,
+                "limit": limit.map(String.init),
+            ].compactMapValues { $0 },
+            on: api
+        )
+    }
 }

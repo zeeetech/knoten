@@ -285,3 +285,45 @@ public struct TimelinePage: Decodable, Sendable {
     public let feed: [TimelineItem]
     public let cursor: String?
 }
+
+/// A markup body, the shape sh.tangled.feed.comment carries: `original` is what
+/// the author typed, `text` is the rendered plain form.
+public struct Markup: Decodable, Sendable {
+    public let original: String?
+    public let text: String?
+
+    /// The best plain text there is, empty when the body carries none.
+    public var plain: String {
+        text ?? original ?? ""
+    }
+}
+
+/// Item of sh.tangled.feed.listComments. The subject is the commented record,
+/// so one comment type serves both pulls and issues.
+public struct FeedComment: Decodable, Sendable {
+    public let uri: String
+    public let cid: String?
+    public let createdAt: String
+    public let body: Markup
+    public let subject: Subject
+
+    public struct Subject: Decodable, Sendable {
+        public let uri: String
+        public let cid: String?
+    }
+
+    /// The author's DID: the repository the comment record lives in. The feed
+    /// sends no handle, so this is the only identity on the wire.
+    public var author: String? {
+        guard uri.hasPrefix("at://") else { return nil }
+        let parts = uri.dropFirst("at://".count).split(separator: "/", omittingEmptySubsequences: true)
+        guard parts.count >= 3 else { return nil }
+        return String(parts[0])
+    }
+}
+
+/// Output of sh.tangled.feed.listComments.
+public struct FeedCommentPage: Decodable, Sendable {
+    public let items: [FeedComment]
+    public let total: Int?
+}
