@@ -65,7 +65,7 @@ private struct RepoRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
-            Text(name)
+            Text(record.repoName)
                 .font(.identifier(.subheadline).weight(.semibold))
 
             if let description = record.value.description, !description.isEmpty {
@@ -84,14 +84,5 @@ private struct RepoRow: View {
             .foregroundStyle(.tertiary)
         }
         .padding(.vertical, Theme.Space.xs)
-    }
-
-    /// A repo record may carry no name, so fall back to the record key, which
-    /// is the slug in the URL.
-    private var name: String {
-        if let name = record.value.name, !name.isEmpty {
-            return name
-        }
-        return record.uri.split(separator: "/").last.map(String.init) ?? record.uri
     }
 }

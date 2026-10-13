@@ -12,12 +12,7 @@ final class PullsModel {
 
         var id: String { repo.uri }
 
-        /// A repo record may carry no name, in which case the record key is the
-        /// slug the repo is addressed by.
-        var name: String {
-            if let name = repo.value.name, !name.isEmpty { return name }
-            return repo.uri.split(separator: "/").last.map(String.init) ?? repo.uri
-        }
+        var name: String { repo.repoName }
     }
 
     enum State {
