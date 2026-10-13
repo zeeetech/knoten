@@ -15,8 +15,7 @@ public struct Repo: Decodable, Sendable {
 }
 
 /// sh.tangled.repo.pull record. Requires `target`, `title`, `createdAt` and
-/// `rounds`. Blob fields (blobs, round.patchBlob) are not read by the 0.1.0
-/// UI and are left out.
+/// `rounds`.
 public struct Pull: Decodable, Sendable {
     public let title: String
     public let body: String?
@@ -27,9 +26,13 @@ public struct Pull: Decodable, Sendable {
     public let mentions: [String]?
     public let references: [String]?
     public let dependentOn: String?
+    public let blobs: [BlobRef]?
 
+    /// revisions of this pull, newer rounds are appended. The patch blob is
+    /// gzipped `git format-patch` text.
     public struct Round: Decodable, Sendable {
         public let createdAt: String
+        public let patchBlob: BlobRef?
     }
 
     /// source of the pull. Requires `branch`.
@@ -53,6 +56,7 @@ public struct Issue: Decodable, Sendable {
     public let createdAt: String
     public let mentions: [String]?
     public let references: [String]?
+    public let blobs: [BlobRef]?
 }
 
 /// sh.tangled.ci.pipeline. Requires `id`, `trigger`, `commit` and `workflows`.
@@ -108,10 +112,10 @@ public struct Knot: Decodable, Sendable {
     public let createdAt: String
 }
 
-/// sh.tangled.actor.profile record. Requires `bluesky`. The avatar is a blob
-/// and is not read by the 0.1.0 UI.
+/// sh.tangled.actor.profile record. Requires `bluesky`.
 public struct Profile: Decodable, Sendable {
     public let bluesky: Bool
+    public let avatar: BlobRef?
     public let description: String?
     public let links: [String]?
     public let stats: [String]?

@@ -28,11 +28,11 @@ private let pullRecord = """
   "rounds": [
     {
       "createdAt": "2026-02-01T10:00:00Z",
-      "patchBlob": {"$type": "blob", "mimeType": "application/gzip", "size": 512}
+      "patchBlob": {"$type": "blob", "ref": {"$link": "bafkreihaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "mimeType": "application/gzip", "size": 512}
     },
     {
       "createdAt": "2026-02-02T10:00:00Z",
-      "patchBlob": {"$type": "blob", "mimeType": "application/gzip", "size": 640}
+      "patchBlob": {"$type": "blob", "ref": {"$link": "bafkreihbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}, "mimeType": "application/gzip", "size": 640}
     }
   ],
   "source": {"branch": "feat/pipelines", "repo": "did:plc:forker00000000000000000000000"},
