@@ -58,9 +58,11 @@ isso que faz um port futuro ser um port e não uma reescrita.
 
 ## Estado
 
-O 0.1.0 está em andamento. Somente leitura: feed, repositórios, pull requests,
-inbox, mais a compra do Pro e o tip jar. Push, widgets e multi-conta vêm depois
-que o relay de notificações existir. O escopo completo e os riscos abertos
+O 0.1.0 está em andamento. Somente leitura: feed, repositórios, e os pulls e
+issues deles, com o diff unificado do pull. Comentários são lidos e escritos, em
+markdown inline. Mais a compra do Pro e o tip jar. Push, widgets e multi-conta
+vêm depois que o relay de notificações existir. Ler os arquivos de um repositório
+é o único item do escopo que ainda falta. O escopo completo e os riscos abertos
 estão em [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Contribuindo

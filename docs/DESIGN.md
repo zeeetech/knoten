@@ -90,16 +90,22 @@ secondary lines when there is one.
 The timestamp is compact (`18m`, `4h`, `2d`), not the automatic relative style,
 which counts seconds and turns a feed into noise. Past a week it becomes a date.
 
-### Pulls
+### Work
 
-Two screens. The list groups pulls by repo, because that is the only shape the
-server offers, and each row carries the state capsule, the branches in SF Mono
-(`fix -> main`) and the comment count.
+One screen, two kinds. Pulls and issues are the same shape from the server: the
+same fields, the same comment type anchored to either, and both queries scoped
+to a repo. So the tab carries a segmented control rather than two tabs, and the
+list and the detail are shared. The tab is named for the pair, since neither
+word covers both.
 
-The detail stacks the pull's own description, the comment box, the diff, then
-the comments. The box sits under the description rather than at the end of the
-thread, because the diff between them can run to hundreds of lines and a reply
-box that far down is a reply box nobody reaches.
+The list groups by repo, because that is the only shape the server offers, and
+each row carries the state capsule, the branches in SF Mono for a pull
+(`fix -> main`), and the comment count.
+
+The detail stacks the description, the comment box, the diff when there is one,
+then the comments. The box sits under the description rather than at the end of
+the thread, because the diff between them can run to hundreds of lines and a
+reply box that far down is a reply box nobody reaches.
 
 Diff lines never wrap: a diff is read by column, so each file scrolls sideways.
 Additions take the trust green and deletions the system red. A file past 300
@@ -335,16 +341,17 @@ The record is `sh.tangled.feed.comment`:
 revision it was written against, and the same record type serves pulls and
 issues.
 
-What `text` is for is unresolved. Every record observed has it equal to
-`original`, so both are written with the markdown the author typed, and the
-renderer runs at display time. The appview does render markdown server side
-(goldmark, in its own repository), which suggests `text` is a plain-text copy
-rather than the rendered form, but no record proves it either way.
+`text` holds the same markdown source as `original`, not a rendered form. A
+comment in the wild carries a bare url and a fenced code block, and its two
+fields are still equal, so both are written with the markdown the author typed
+and the renderer runs at display time.
 
 Rich text is inline only: bold, italic, code and links. `AttributedString`
-parses that subset with `.inlineOnlyPreservingWhitespace`, so there is no
-renderer to own and no block syntax to fight. The composer inserts the markers
-as text, so the box holds exactly what gets written to the record.
+parses that subset with `.inlineOnlyPreservingWhitespace`, which also covers the
+two things that turn up in real comments: a bare url becomes a link, and a
+fenced code block becomes monospaced inline code with its fences dropped.
+Whitespace and line breaks are preserved either way. The composer inserts the
+markers as text, so the box holds exactly what gets written to the record.
 
 **The write itself is unverified.** It needs a live session, and only two things
 could be checked without one: the record shape, against a real record, and the
@@ -387,18 +394,23 @@ gives up.
 
 ## 0.1.0
 
-In:
+Built:
 
 - OAuth login, one account.
 - Home feed of activity, read only.
-- Repos list and file reading, read only.
-- Pull request list, unified diff, and the comments on a pull, with a comment
-  box that writes. Inline markdown only.
+- Repos list, read only.
+- Work: pulls and issues against the account's repos, the unified diff of a
+  pull, the comments on either, and a comment box that writes. Inline markdown
+  only.
 - Inbox, plus background refresh, no push. The refresh is on appear, on pull to
   refresh, and on the system's own schedule; there is no foreground timer.
 - Server settings with the freemium gate.
 - Paywall, one non-consumable.
 - Tip jar, three consumables.
+
+**Not built: reading a repo's files.** The Repos tab lists repositories and stops
+there. That is the one item the scope named that is missing; everything else on
+the list is in.
 
 Out, on purpose: push, widgets, multi-account, OAuth account switching, any
 write to a knot.

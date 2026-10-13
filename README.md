@@ -57,10 +57,12 @@ which is what makes a future port a port and not a rewrite.
 
 ## Status
 
-0.1.0 is in progress. Read only: feed, repos, pull requests, inbox, plus the
-Pro purchase and the tip jar. Push, widgets and multi-account come after the
-notification relay exists. See [docs/DESIGN.md](docs/DESIGN.md) for the full
-scope and the open risks.
+0.1.0 is in progress. Read only: the feed, repos, and the pulls and issues
+against them, with a pull's unified diff. Comments are read and written, in
+inline markdown. Plus the Pro purchase and the tip jar. Push, widgets and
+multi-account come after the notification relay exists. Reading a repo's files
+is the one item the scope named that is still missing. See
+[docs/DESIGN.md](docs/DESIGN.md) for the full scope and the open risks.
 
 ## Contributing
 
