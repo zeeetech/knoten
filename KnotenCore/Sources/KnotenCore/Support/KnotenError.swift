@@ -13,6 +13,8 @@ public enum KnotenError: Error, Equatable {
     case missingNonce
     case missingMetadataField(String)
     case invalidSession(String)
+    case keychain(OSStatus)
+    case cancelledLogin
 }
 
 extension KnotenError: LocalizedError {
@@ -30,6 +32,8 @@ extension KnotenError: LocalizedError {
         case .missingNonce: "response carried no DPoP nonce"
         case .missingMetadataField(let field): "metadata is missing \(field)"
         case .invalidSession(let reason): "invalid session: \(reason)"
+        case .keychain(let status): "keychain failure: \(status)"
+        case .cancelledLogin: "sign in was cancelled"
         }
     }
 }
