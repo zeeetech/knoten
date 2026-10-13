@@ -8,10 +8,25 @@ struct SettingsView: View {
         List {
             Section {
                 if case .signedIn(let account) = session.state {
-                    LabeledContent("Account") {
-                        Text(account.handle ?? account.did)
-                            .font(.identifier(.subheadline))
+                    HStack(spacing: Theme.Space.md) {
+                        if let services = session.account {
+                            AvatarView(
+                                blob: session.avatar,
+                                did: services.did,
+                                pds: services.pds,
+                                loader: services.blobs
+                            )
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(account.handle ?? account.did)
+                                .font(.identifier(.subheadline))
+                            Text("Signed in")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+
                     Button("Sign out", role: .destructive) {
                         Task { await session.logout() }
                     }

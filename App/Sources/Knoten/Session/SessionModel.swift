@@ -21,25 +21,42 @@ final class SessionModel {
         case failed(KnotenError)
     }
 
+    /// The session bound pieces a screen needs: where the account lives, and
+    /// how to pull bytes off it.
+    struct Account {
+        let did: String
+        let pds: URL
+        let blobs: BlobLoader
+    }
+
     private(set) var state: State = .signedOut
+    private(set) var account: Account?
+    private(set) var avatar: BlobRef?
 
     private let client: OAuthClient
     private let storage: SessionStorage
+    private let api: URL
+    private let cache: BlobCache
     private let authorizer = Authorizer()
     private let authentication = AuthenticationSession()
+    private var store: SessionStore?
 
     init(
         client: OAuthClient = .knoten,
-        storage: SessionStorage = KeychainSessionStorage(service: "io.zeetech.knoten")
+        storage: SessionStorage = KeychainSessionStorage(service: "io.zeetech.knoten"),
+        api: URL = URL(string: Tangled.defaultAPI)!,
+        cache: BlobCache = DiskBlobCache(directory: URL.cachesDirectory.appending(path: "blobs"))
     ) {
         self.client = client
         self.storage = storage
+        self.api = api
+        self.cache = cache
     }
 
     func restore() async {
         switch await storage.load() {
         case .success(.some(let session)):
-            state = .signedIn(session)
+            await adopt(session)
         case .success(nil):
             state = .signedOut
         case .failure(let error):
@@ -52,7 +69,7 @@ final class SessionModel {
         state = .signingIn
         switch await authorize(handle: handle) {
         case .success(let session):
-            state = .signedIn(session)
+            await adopt(session)
             return .success(())
         case .failure(let error):
             state = .failed(error)
@@ -65,7 +82,37 @@ final class SessionModel {
             state = .failed(error)
             return
         }
+
+        store = nil
+        account = nil
+        avatar = nil
         state = .signedOut
+    }
+
+    private func adopt(_ session: OAuthSession) async {
+        let store = SessionStore(session: session)
+        self.store = store
+        account = Account(
+            did: session.did,
+            pds: session.serviceURL,
+            blobs: BlobLoader(client: XRPCClient(store: store), cache: cache)
+        )
+        state = .signedIn(session)
+
+        await loadAvatar()
+    }
+
+    /// The profile record lives on the account's PDS but is read through the
+    /// Tangled API, which is where the query is served.
+    private func loadAvatar() async {
+        guard let store, let account else { return }
+
+        let tangled = TangledClient(client: XRPCClient(store: store), api: api)
+        let uri = "at://\(account.did)/sh.tangled.actor.profile/self"
+
+        if case .success(let record) = await tangled.getProfile(actor: uri) {
+            avatar = record.value.avatar
+        }
     }
 
     private func authorize(handle: String) async -> KnotenResult<OAuthSession> {
