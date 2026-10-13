@@ -476,7 +476,7 @@ private let commentPage = """
     #expect(page.items.count == 1)
 
     let comment = try #require(page.items.first)
-    #expect(comment.body.plain == "neat :)")
+    #expect(comment.body.source == "neat :)")
     #expect(comment.author == "did:plc:3xpaniu6rs7fygzthgmtuv7c")
     #expect(comment.subject.uri == "at://did:plc:pdp6hoacxbs62srfxvrybs2o/sh.tangled.repo.pull/3mwaygxq3rp22")
     #expect(comment.subject.cid == "bafyreiglwzb7uwrvyirpqugadiuktesi3kv67pxc3qjntania7hl6nunqu")
@@ -487,7 +487,7 @@ private let commentPage = """
     let comment = try JSONDecoder().decode(FeedComment.self, from: data)
 
     #expect(comment.body.text == nil)
-    #expect(comment.body.plain == "raw **markdown**")
+    #expect(comment.body.source == "raw **markdown**")
 }
 
 @Test func readsNoAuthorOutOfAMalformedURI() throws {

@@ -287,14 +287,15 @@ public struct TimelinePage: Decodable, Sendable {
 }
 
 /// A markup body, the shape sh.tangled.feed.comment carries: `original` is what
-/// the author typed, `text` is the rendered plain form.
+/// the author typed, `text` is the rendered form. Every record observed has the
+/// two equal, so both are read and the renderer runs at display time.
 public struct Markup: Decodable, Sendable {
     public let original: String?
     public let text: String?
 
-    /// The best plain text there is, empty when the body carries none.
-    public var plain: String {
-        text ?? original ?? ""
+    /// The markdown to render, empty when the body carries neither field.
+    public var source: String {
+        original ?? text ?? ""
     }
 }
 
