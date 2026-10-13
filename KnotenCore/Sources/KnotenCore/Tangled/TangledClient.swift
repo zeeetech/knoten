@@ -22,7 +22,7 @@ public struct TangledClient: Sendable {
         limit: Int? = nil,
         order: String? = nil
     ) async -> KnotenResult<RecordPage<Repo>> {
-        await client.get(
+        await client.publicGet(
             Tangled.repoListRepos,
             params: [
                 "subject": subject,
@@ -36,12 +36,12 @@ public struct TangledClient: Sendable {
 
     /// sh.tangled.repo.getRepo: one repo record by AT-URI.
     public func getRepo(repo: String) async -> KnotenResult<RecordView<Repo>> {
-        await client.get(Tangled.repoGetRepo, params: ["repo": repo], on: api)
+        await client.publicGet(Tangled.repoGetRepo, params: ["repo": repo], on: api)
     }
 
     /// sh.tangled.repo.getRepoByRepoDid: one repo record by repo DID.
     public func getRepoByRepoDid(repoDid: String) async -> KnotenResult<RecordView<Repo>> {
-        await client.get(Tangled.repoGetRepoByRepoDid, params: ["repoDid": repoDid], on: api)
+        await client.publicGet(Tangled.repoGetRepoByRepoDid, params: ["repoDid": repoDid], on: api)
     }
 
     /// sh.tangled.repo.listPulls: pulls for a repo DID, with derived state.
@@ -53,7 +53,7 @@ public struct TangledClient: Sendable {
         limit: Int? = nil,
         order: String? = nil
     ) async -> KnotenResult<PullPage> {
-        await client.get(
+        await client.publicGet(
             Tangled.repoListPulls,
             params: [
                 "subject": subject,
@@ -69,7 +69,7 @@ public struct TangledClient: Sendable {
 
     /// sh.tangled.repo.getPull: one pull record by AT-URI.
     public func getPull(pull: String) async -> KnotenResult<RecordView<Pull>> {
-        await client.get(Tangled.repoGetPull, params: ["pull": pull], on: api)
+        await client.publicGet(Tangled.repoGetPull, params: ["pull": pull], on: api)
     }
 
     /// sh.tangled.repo.listIssues: issues for a repo DID, with derived state.
@@ -81,7 +81,7 @@ public struct TangledClient: Sendable {
         limit: Int? = nil,
         order: String? = nil
     ) async -> KnotenResult<IssuePage> {
-        await client.get(
+        await client.publicGet(
             Tangled.repoListIssues,
             params: [
                 "subject": subject,
@@ -97,7 +97,7 @@ public struct TangledClient: Sendable {
 
     /// sh.tangled.repo.getIssue: one issue record by AT-URI.
     public func getIssue(issue: String) async -> KnotenResult<RecordView<Issue>> {
-        await client.get(Tangled.repoGetIssue, params: ["issue": issue], on: api)
+        await client.publicGet(Tangled.repoGetIssue, params: ["issue": issue], on: api)
     }
 
     /// sh.tangled.ci.queryPipelines: pipelines a spindle ran for a repo DID.
@@ -106,7 +106,7 @@ public struct TangledClient: Sendable {
         limit: Int? = nil,
         cursor: String? = nil
     ) async -> KnotenResult<PipelinePage> {
-        await client.get(
+        await client.publicGet(
             Tangled.ciQueryPipelines,
             params: [
                 "repo": repo,
@@ -120,7 +120,7 @@ public struct TangledClient: Sendable {
     /// sh.tangled.actor.getProfile: one profile record by AT-URI, of the form
     /// `at://<did>/sh.tangled.actor.profile/self`.
     public func getProfile(actor: String) async -> KnotenResult<RecordView<Profile>> {
-        await client.get(Tangled.actorGetProfile, params: ["actor": actor], on: api)
+        await client.publicGet(Tangled.actorGetProfile, params: ["actor": actor], on: api)
     }
 
     /// sh.tangled.knot.listKnots: knot records owned by a DID.
@@ -130,7 +130,7 @@ public struct TangledClient: Sendable {
         limit: Int? = nil,
         order: String? = nil
     ) async -> KnotenResult<RecordPage<Knot>> {
-        await client.get(
+        await client.publicGet(
             Tangled.knotListKnots,
             params: [
                 "subject": subject,
