@@ -23,11 +23,12 @@ final class SessionModel {
 
     /// The session bound pieces a screen needs: where the account lives, and
     /// how to pull bytes off it.
-    struct Account {
+    struct Account: Sendable {
         let did: String
         let pds: URL
         let blobs: BlobLoader
         let tangled: TangledClient
+        let resolver: DIDResolver
     }
 
     private(set) var state: State = .signedOut
@@ -99,7 +100,8 @@ final class SessionModel {
             did: session.did,
             pds: session.serviceURL,
             blobs: BlobLoader(client: client, cache: cache),
-            tangled: TangledClient(client: client, api: api)
+            tangled: TangledClient(client: client, api: api),
+            resolver: DIDResolver()
         )
         state = .signedIn(session)
 
