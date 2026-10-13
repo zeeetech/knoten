@@ -7,7 +7,7 @@ struct RootView: View {
                 Placeholder(title: "Home")
             }
             Tab("Repos", systemImage: "shippingbox") {
-                Placeholder(title: "Repos")
+                ReposView()
             }
             Tab("Pulls", systemImage: "arrow.triangle.pull") {
                 Placeholder(title: "Pulls")

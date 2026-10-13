@@ -27,6 +27,7 @@ final class SessionModel {
         let did: String
         let pds: URL
         let blobs: BlobLoader
+        let tangled: TangledClient
     }
 
     private(set) var state: State = .signedOut
@@ -92,10 +93,13 @@ final class SessionModel {
     private func adopt(_ session: OAuthSession) async {
         let store = SessionStore(session: session)
         self.store = store
+
+        let client = XRPCClient(store: store)
         account = Account(
             did: session.did,
             pds: session.serviceURL,
-            blobs: BlobLoader(client: XRPCClient(store: store), cache: cache)
+            blobs: BlobLoader(client: client, cache: cache),
+            tangled: TangledClient(client: client, api: api)
         )
         state = .signedIn(session)
 
@@ -105,12 +109,10 @@ final class SessionModel {
     /// The profile record lives on the account's PDS but is read through the
     /// Tangled API, which is where the query is served.
     private func loadAvatar() async {
-        guard let store, let account else { return }
+        guard let account else { return }
 
-        let tangled = TangledClient(client: XRPCClient(store: store), api: api)
         let uri = "at://\(account.did)/sh.tangled.actor.profile/self"
-
-        if case .success(let record) = await tangled.getProfile(actor: uri) {
+        if case .success(let record) = await account.tangled.getProfile(actor: uri) {
             avatar = record.value.avatar
         }
     }
