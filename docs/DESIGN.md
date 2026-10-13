@@ -96,7 +96,11 @@ Two screens. The list groups pulls by repo, because that is the only shape the
 server offers, and each row carries the state capsule, the branches in SF Mono
 (`fix -> main`) and the comment count.
 
-The detail stacks the pull's own description, then the diff, then the comments.
+The detail stacks the pull's own description, the comment box, the diff, then
+the comments. The box sits under the description rather than at the end of the
+thread, because the diff between them can run to hundreds of lines and a reply
+box that far down is a reply box nobody reaches.
+
 Diff lines never wrap: a diff is read by column, so each file scrolls sideways.
 Additions take the trust green and deletions the system red. A file past 300
 lines names what it left out instead of laying it out, because a large patch is
@@ -309,6 +313,44 @@ the wake itself has to be checked on a device.
 Badges need `.badge` authorization, which is asked for the first time the inbox
 appears rather than at launch.
 
+### Commenting
+
+Every other call in the app is a read, and every read is public. A comment is
+the first write, so it is the first call that carries the session token, and it
+goes to the account's own PDS (`com.atproto.repo.createRecord`) rather than to
+the API host. That split is why `TangledWriter` exists beside `TangledClient`.
+
+The record is `sh.tangled.feed.comment`:
+
+```json
+{
+  "$type": "sh.tangled.feed.comment",
+  "body": { "$type": "sh.tangled.markup.markdown", "original": "...", "text": "..." },
+  "createdAt": "2026-10-13T09:40:00Z",
+  "subject": { "uri": "at://...", "cid": "..." }
+}
+```
+
+`subject` carries the cid as well as the uri, which anchors the comment to the
+revision it was written against, and the same record type serves pulls and
+issues.
+
+What `text` is for is unresolved. Every record observed has it equal to
+`original`, so both are written with the markdown the author typed, and the
+renderer runs at display time. The appview does render markdown server side
+(goldmark, in its own repository), which suggests `text` is a plain-text copy
+rather than the rendered form, but no record proves it either way.
+
+Rich text is inline only: bold, italic, code and links. `AttributedString`
+parses that subset with `.inlineOnlyPreservingWhitespace`, so there is no
+renderer to own and no block syntax to fight. The composer inserts the markers
+as text, so the box holds exactly what gets written to the record.
+
+**The write itself is unverified.** It needs a live session, and only two things
+could be checked without one: the record shape, against a real record, and the
+endpoint existing (`com.atproto.repo.createRecord` answers 401, not 404). The
+POST has not been made.
+
 ## Brand surfaces
 
 The app and the landing page are two different surfaces and do not share a
@@ -350,8 +392,8 @@ In:
 - OAuth login, one account.
 - Home feed of activity, read only.
 - Repos list and file reading, read only.
-- Pull request list, unified diff, and the comments on a pull, all read only.
-  Writing a comment would be the first write to the PDS and is still open.
+- Pull request list, unified diff, and the comments on a pull, with a comment
+  box that writes. Inline markdown only.
 - Inbox, plus background refresh, no push. The refresh is on appear, on pull to
   refresh, and on the system's own schedule; there is no foreground timer.
 - Server settings with the freemium gate.
