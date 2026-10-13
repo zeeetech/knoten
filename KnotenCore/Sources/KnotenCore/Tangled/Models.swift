@@ -178,3 +178,110 @@ public struct PipelinePage: Decodable, Sendable {
     public let total: Int
     public let pipelines: [Pipeline]
 }
+
+/// An account reference as feeds present it: a DID plus, when the appview
+/// knows one, a handle.
+public struct Actor: Decodable, Sendable {
+    public let did: String
+    public let handle: String?
+
+    /// The handle when there is one, otherwise the DID. A handle is the only
+    /// form of this worth showing a person.
+    public var label: String {
+        handle ?? did
+    }
+}
+
+/// A repo as the appview presents it in feeds: the derived view, with an owner
+/// and counters. Not the sh.tangled.repo record, which carries `knot` and no
+/// owner; this carries `owner` and `slug` and no `knot`.
+public struct RepoSummary: Decodable, Sendable {
+    public let did: String
+    public let slug: String
+    public let owner: Actor
+    public let description: String?
+    public let createdAt: String?
+    public let starCount: Int?
+    public let forkCount: Int?
+    public let openIssueCount: Int?
+    public let openPullCount: Int?
+
+    /// `owner/slug`, the way a repo is named.
+    public var name: String {
+        "\(owner.label)/\(slug)"
+    }
+}
+
+/// One event of sh.tangled.feed.getTimeline. On the wire it is a union
+/// discriminated by the fragment of `$type`; each case carries only what its
+/// variant has. An unrecognized variant is kept, not dropped, so a new event
+/// type on the server does not empty the feed.
+public enum TimelineEvent: Decodable, Sendable {
+    case follow(actor: Actor, subject: Actor, uri: String, cid: String?)
+    case repo(RepoSummary, uri: String, cid: String?)
+    case star(actor: Actor, repo: RepoSummary, uri: String, cid: String?)
+    case unknown(type: String, uri: String)
+
+    /// The event's AT-URI. Every variant carries one, and it is what tells two
+    /// events apart.
+    public var uri: String {
+        switch self {
+        case .follow(_, _, let uri, _), .repo(_, let uri, _), .star(_, _, let uri, _):
+            return uri
+        case .unknown(_, let uri):
+            return uri
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case type = "$type"
+        case actor, subject, repo, uri, cid
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decodeIfPresent(String.self, forKey: .type) ?? ""
+        let uri = try container.decodeIfPresent(String.self, forKey: .uri) ?? ""
+        let cid = try container.decodeIfPresent(String.self, forKey: .cid)
+
+        switch type.split(separator: "#").last.map(String.init) ?? type {
+        case "followEvent":
+            self = .follow(
+                actor: try container.decode(Actor.self, forKey: .actor),
+                subject: try container.decode(Actor.self, forKey: .subject),
+                uri: uri,
+                cid: cid
+            )
+        case "repoEvent":
+            self = .repo(try container.decode(RepoSummary.self, forKey: .repo), uri: uri, cid: cid)
+        case "starEvent":
+            self = .star(
+                actor: try container.decode(Actor.self, forKey: .actor),
+                repo: try container.decode(RepoSummary.self, forKey: .repo),
+                uri: uri,
+                cid: cid
+            )
+        default:
+            self = .unknown(type: type, uri: uri)
+        }
+    }
+}
+
+/// One item of sh.tangled.feed.getTimeline: an event and when it happened.
+public struct TimelineItem: Decodable, Sendable {
+    public let event: TimelineEvent
+    public let eventAt: String
+
+    /// Identity for lists. The event's AT-URI, not the timestamp, which can
+    /// repeat when several events land in the same millisecond.
+    public var id: String {
+        event.uri
+    }
+}
+
+/// Output of sh.tangled.feed.getTimeline. The feed is the whole network: the
+/// server accepts no actor filter and ignores one if it is sent.
+public struct TimelinePage: Decodable, Sendable {
+    public let feed: [TimelineItem]
+    public let cursor: String?
+}

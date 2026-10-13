@@ -141,4 +141,21 @@ public struct TangledClient: Sendable {
             on: api
         )
     }
+
+    /// sh.tangled.feed.getTimeline: recent activity across Tangled. There is no
+    /// per-account variant; the server ignores any actor filter, so this is the
+    /// whole network rather than the accounts a user follows.
+    public func getTimeline(
+        cursor: String? = nil,
+        limit: Int? = nil
+    ) async -> KnotenResult<TimelinePage> {
+        await client.publicGet(
+            Tangled.feedGetTimeline,
+            params: [
+                "cursor": cursor,
+                "limit": limit.map(String.init),
+            ].compactMapValues { $0 },
+            on: api
+        )
+    }
 }

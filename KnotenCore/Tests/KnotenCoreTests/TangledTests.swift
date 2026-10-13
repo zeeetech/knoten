@@ -298,3 +298,148 @@ private let profileRecord = """
     #expect(page.pipelines[0].trigger.type == "sh.tangled.ci.trigger#push")
     #expect(page.cursor == "01HQABCDEF")
 }
+
+// Shaped like a real sh.tangled.feed.getTimeline response. Note the repo object
+// is the derived summary the appview sends (owner, slug, counters), not the
+// sh.tangled.repo record the other endpoints return.
+private let timelineResponse = """
+{
+  "cursor": "00065dad9ba0dc800002839e",
+  "feed": [
+    {
+      "event": {
+        "$type": "sh.tangled.feed.getTimeline#followEvent",
+        "actor": {"did": "did:plc:actor000000000000000000000", "handle": "actor.example"},
+        "cid": "bafyreifollow",
+        "subject": {
+          "did": "did:plc:subject0000000000000000000",
+          "followersCount": 21,
+          "followsCount": 12,
+          "handle": "subject.example"
+        },
+        "uri": "at://did:plc:actor000000000000000000000/sh.tangled.graph.follow/3mxq5zhbtgz2m"
+      },
+      "eventAt": "2026-10-13T04:10:31.151Z"
+    },
+    {
+      "event": {
+        "$type": "sh.tangled.feed.getTimeline#repoEvent",
+        "cid": "bafyreirepo",
+        "repo": {
+          "createdAt": "2026-10-13T03:58:14Z",
+          "description": "A site for ester.",
+          "did": "did:plc:repo0000000000000000000000",
+          "forkCount": 0,
+          "openIssueCount": 0,
+          "openPullCount": 0,
+          "owner": {"did": "did:plc:owner000000000000000000000", "handle": "owner.example"},
+          "slug": "estersite",
+          "starCount": 0
+        },
+        "uri": "at://did:plc:owner000000000000000000000/sh.tangled.repo/estersite"
+      },
+      "eventAt": "2026-10-13T03:58:14Z"
+    },
+    {
+      "event": {
+        "$type": "sh.tangled.feed.getTimeline#starEvent",
+        "actor": {"did": "did:plc:starer00000000000000000000", "handle": "starer.example"},
+        "cid": "bafyreistar",
+        "repo": {
+          "createdAt": "2026-10-12T09:00:21+03:00",
+          "description": "Automerge backed Markdown editor for the Atmosphere",
+          "did": "did:plc:repo20000000000000000000000",
+          "forkCount": 1,
+          "openIssueCount": 2,
+          "openPullCount": 3,
+          "owner": {"did": "did:plc:owner2000000000000000000000", "handle": "hyl.st"},
+          "slug": "reams",
+          "starCount": 6
+        },
+        "uri": "at://did:plc:starer00000000000000000000/sh.tangled.feed.star/3mxq3hefkgr22"
+      },
+      "eventAt": "2026-10-13T06:24:36+03:00"
+    }
+  ]
+}
+"""
+
+@Test func decodesTheTimelineByEventType() throws {
+    let page = try JSONDecoder().decode(TimelinePage.self, from: Data(timelineResponse.utf8))
+    #expect(page.feed.count == 3)
+    #expect(page.cursor == "00065dad9ba0dc800002839e")
+    #expect(page.feed[0].eventAt == "2026-10-13T04:10:31.151Z")
+
+    guard case .follow(let actor, let subject, let uri, let cid) = page.feed[0].event else {
+        Issue.record("expected a follow event, got \(page.feed[0].event)")
+        return
+    }
+    #expect(actor.label == "actor.example")
+    #expect(subject.label == "subject.example")
+    #expect(uri == "at://did:plc:actor000000000000000000000/sh.tangled.graph.follow/3mxq5zhbtgz2m")
+    #expect(cid == "bafyreifollow")
+
+    guard case .repo(let created, _, _) = page.feed[1].event else {
+        Issue.record("expected a repo event, got \(page.feed[1].event)")
+        return
+    }
+    #expect(created.name == "owner.example/estersite")
+    #expect(created.description == "A site for ester.")
+    #expect(created.starCount == 0)
+    #expect(created.openIssueCount == 0)
+
+    guard case .star(let starer, let starred, _, _) = page.feed[2].event else {
+        Issue.record("expected a star event, got \(page.feed[2].event)")
+        return
+    }
+    #expect(starer.label == "starer.example")
+    #expect(starred.name == "hyl.st/reams")
+    #expect(starred.openPullCount == 3)
+    #expect(starred.forkCount == 1)
+}
+
+@Test func keepsAnEventTypeThisBuildDoesNotKnow() throws {
+    let data = Data("""
+    {
+      "feed": [
+        {
+          "event": {
+            "$type": "sh.tangled.feed.getTimeline#forkEvent",
+            "uri": "at://did:plc:someone/sh.tangled.feed.fork/abc"
+          },
+          "eventAt": "2026-10-13T00:00:00Z"
+        }
+      ]
+    }
+    """.utf8)
+    let page = try JSONDecoder().decode(TimelinePage.self, from: data)
+    guard case .unknown(let type, let uri) = page.feed[0].event else {
+        Issue.record("expected an unknown event, got \(page.feed[0].event)")
+        return
+    }
+    #expect(type == "sh.tangled.feed.getTimeline#forkEvent")
+    #expect(uri == "at://did:plc:someone/sh.tangled.feed.fork/abc")
+    #expect(page.cursor == nil)
+}
+
+@Test func actorLabelFallsBackToTheDID() throws {
+    let data = Data(#"{"did": "did:plc:noHandle0000000000000000000"}"#.utf8)
+    let actor = try JSONDecoder().decode(Actor.self, from: data)
+    #expect(actor.handle == nil)
+    #expect(actor.label == "did:plc:noHandle0000000000000000000")
+}
+
+@Test func repoSummaryDecodesWithoutItsOptionalFields() throws {
+    let data = Data("""
+    {
+      "did": "did:plc:repo0000000000000000000000",
+      "slug": "bare",
+      "owner": {"did": "did:plc:owner000000000000000000000"}
+    }
+    """.utf8)
+    let repo = try JSONDecoder().decode(RepoSummary.self, from: data)
+    #expect(repo.description == nil)
+    #expect(repo.starCount == nil)
+    #expect(repo.createdAt == nil)
+    #expect(repo.name == "did:plc:owner000000000000000000000/bare")
+}

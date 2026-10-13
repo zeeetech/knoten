@@ -15,4 +15,5 @@ public enum Tangled {
     public static let ciQueryPipelines = "sh.tangled.ci.queryPipelines"
     public static let actorGetProfile = "sh.tangled.actor.getProfile"
     public static let knotListKnots = "sh.tangled.knot.listKnots"
+    public static let feedGetTimeline = "sh.tangled.feed.getTimeline"
 }
