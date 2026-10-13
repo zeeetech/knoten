@@ -15,12 +15,15 @@ public struct XRPCClient: Sendable {
         self.executor = DPoPExecutor(transport: transport)
     }
 
+    /// `service` nil targets the session's own PDS, a URL targets another host.
+    /// Tangled queries live on the API host, not on the account's PDS.
     public func get<Response: Decodable>(
         _ nsid: String,
-        params: [String: String] = [:]
+        params: [String: String] = [:],
+        on service: URL? = nil
     ) async -> KnotenResult<Response> {
         let session = await store.current()
-        return await call(method: "GET", nsid: nsid, params: params, body: nil, session: session)
+        return await call(method: "GET", nsid: nsid, params: params, body: nil, service: service, session: session)
     }
 
     /// Reads the raw body of an XRPC endpoint. `service` nil targets the
@@ -43,13 +46,14 @@ public struct XRPCClient: Sendable {
 
     public func post<Body: Encodable, Response: Decodable>(
         _ nsid: String,
-        body: Body
+        body: Body,
+        on service: URL? = nil
     ) async -> KnotenResult<Response> {
         guard let encoded = try? JSONEncoder().encode(body) else {
             return .failure(.invalidResponse("request body is not encodable"))
         }
         let session = await store.current()
-        return await call(method: "POST", nsid: nsid, params: [:], body: encoded, session: session)
+        return await call(method: "POST", nsid: nsid, params: [:], body: encoded, service: service, session: session)
     }
 
     private func call<Response: Decodable>(
