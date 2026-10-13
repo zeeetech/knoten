@@ -141,6 +141,12 @@ Client identity is published at `web/oauth/client-metadata.json`, served from
 the `client_id` URL. The redirect is a native scheme in reverse-domain order,
 `io.zeetech.knoten:/callback`, one slash after the colon, as the spec requires.
 
+That redirect is verified, not assumed. Both `tngl.sh` and `bsky.social`
+answered a pushed request for it with a `request_uri`, so custom schemes are
+accepted and the in-app loopback listener that bluesky-social/atproto#2814
+suggested as a fallback is not needed. The pushed request answers `201
+Created`, per RFC 9126, which is not a failure.
+
 ## Services
 
 Three hosts, and the difference matters:
@@ -171,6 +177,23 @@ shared across every call to that host. The API host does not advertise one.
 `vary: Authorization` is why `URLCache` is not the answer. It would key entries
 on the auth header, which rotates on every refresh and differs per account, so
 a multi-account app would never reuse a hit. Cache blobs ourselves instead.
+
+## Brand surfaces
+
+The app and the landing page are two different surfaces and do not share a
+theme.
+
+The landing at `knoten.zeetech.io` follows the Zeetech brand directive in
+full, because it is Zeetech's front door. The app keeps its own developer-tool
+design (system surfaces, SF Pro and SF Mono, IDE blue and trust green), because
+the directive's type system cannot be applied on iOS (MonoLisa is paid and not
+embeddable), a purple accent fights the system tint, and a fully branded app
+would read as a vendor product rather than the independent, open source client
+it is.
+
+The brand touches the app in exactly two places: the app icon, on the Zeetech
+near-black, and an attribution line in Settings. Knoten has no mark of its own
+yet; the landing carries the Zeetech symbol alone until it does.
 
 ## Blobs
 
@@ -207,10 +230,6 @@ write to a knot.
 
 ## Open risks
 
-- **Native redirect acceptance.** The spec allows `io.zeetech.knoten:/callback`,
-  but real authorization servers have rejected custom schemes (bluesky-social/
-  atproto#2814). Verify against the `tngl.sh` authorization server before
-  building the login UI on top of it. Fallback is an in-app loopback listener.
 - **Lexicon churn.** `sh.tangled.*` is alpha and being restructured. Pin a
   version, expect breakage, keep the wire types in one place.
 - **Rate limit on the PDS.** 3000 requests per five minutes, shared with every

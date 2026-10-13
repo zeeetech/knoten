@@ -35,6 +35,14 @@ The Xcode project is generated, not committed. `project.yml` is the source of
 truth. StoreKit products live in `App/StoreKit/Knoten.storekit`, so the
 purchase flow works in the simulator without App Store Connect.
 
+`KnotenCore` also carries a live smoke check. It walks the authorization flow
+against a real authorization server, up to the pushed request, and prints what
+came back. That is the quickest way to tell a server problem from a client one:
+
+```bash
+cd KnotenCore && swift run knoten-smoke your.handle.example
+```
+
 ## Layout
 
 ```

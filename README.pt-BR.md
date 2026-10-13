@@ -35,6 +35,15 @@ O projeto do Xcode é gerado, não versionado. O `project.yml` é a fonte da
 verdade. Os produtos do StoreKit ficam em `App/StoreKit/Knoten.storekit`, então
 o fluxo de compra funciona no simulador sem App Store Connect.
 
+O `KnotenCore` também traz um smoke check ao vivo. Ele percorre o fluxo de
+autorização contra um authorization server de verdade, até a pushed request, e
+imprime o que voltou. É o jeito mais rápido de distinguir problema do servidor
+de problema do cliente:
+
+```bash
+cd KnotenCore && swift run knoten-smoke seu.handle.example
+```
+
 ## Estrutura
 
 ```
