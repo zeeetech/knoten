@@ -11,6 +11,7 @@ struct PullDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Space.lg) {
                 header
+                composerBlock
                 diffBlock
                 commentsBlock
             }
@@ -57,6 +58,20 @@ struct PullDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Theme.Space.md)
         .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+    }
+
+    /// Directly under the description rather than at the end of the thread,
+    /// because the diff below it can run to hundreds of lines and a reply box
+    /// that far down is a reply box nobody reaches.
+    @ViewBuilder
+    private var composerBlock: some View {
+        if let model {
+            CommentComposer(
+                isSending: model.isSending,
+                failure: model.postFailure,
+                onSend: { body in await model.send(body) }
+            )
+        }
     }
 
     @ViewBuilder
@@ -139,7 +154,7 @@ private struct CommentCard: View {
                 }
             }
 
-            Text(comment.body.plain)
+            Text(InlineMarkdown.attributed(comment.body.source))
                 .font(.subheadline)
                 .textSelection(.enabled)
         }

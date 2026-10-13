@@ -28,6 +28,7 @@ final class SessionModel {
         let pds: URL
         let blobs: BlobLoader
         let tangled: TangledClient
+        let writer: TangledWriter
         let resolver: DIDResolver
     }
 
@@ -101,6 +102,7 @@ final class SessionModel {
             pds: session.serviceURL,
             blobs: BlobLoader(client: client, cache: cache),
             tangled: TangledClient(client: client, api: api),
+            writer: TangledWriter(client: client, did: session.did),
             resolver: DIDResolver()
         )
         state = .signedIn(session)

@@ -17,6 +17,15 @@ final class PullDetailModel {
     private(set) var commentFailure: KnotenError?
     private(set) var diff: DiffState = .loading
 
+    /// The state of the comment box: sending, or the reason it did not.
+    private(set) var post: PostState = .idle
+
+    enum PostState: Equatable {
+        case idle
+        case sending
+        case failed(String)
+    }
+
     private var authors: [String: String] = [:]
 
     private let pull: PullItem
@@ -41,6 +50,42 @@ final class PullDetailModel {
     func label(for author: String?) -> String {
         guard let author else { return "unknown" }
         return authors[author] ?? author
+    }
+
+    var isSending: Bool {
+        post == .sending
+    }
+
+    var postFailure: String? {
+        if case .failed(let reason) = post { return reason }
+        return nil
+    }
+
+    /// Posts a comment, then reads the thread back.
+    ///
+    /// `createRecord` does not echo the record, so reading the comments again is
+    /// how the new row gets its uri and the server's own rendering of it. True
+    /// when the comment landed, which is when the box should clear.
+    func send(_ body: String) async -> Bool {
+        let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard let cid = pull.cid else {
+            post = .failed("This pull carries no cid to comment against.")
+            return false
+        }
+
+        post = .sending
+        let subject = CommentSubject(uri: pull.uri, cid: cid)
+
+        switch await account.writer.comment(on: subject, body: trimmed) {
+        case .failure(let error):
+            post = .failed(error.localizedDescription)
+            return false
+        case .success:
+            await loadComments()
+            post = .idle
+            return true
+        }
     }
 
     private func loadComments() async {
