@@ -4,7 +4,7 @@ struct RootView: View {
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house") {
-                Placeholder(title: "Home")
+                HomeView()
             }
             Tab("Repos", systemImage: "shippingbox") {
                 ReposView()
