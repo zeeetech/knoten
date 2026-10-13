@@ -324,3 +324,11 @@ public struct FeedCommentPage: Decodable, Sendable {
     public let items: [FeedComment]
     public let total: Int?
 }
+
+/// sh.tangled.graph.follow record: the record's owner follows `subject`. Asked
+/// with a subject, the API answers with the accounts that follow it, so this
+/// reads followers even though the query is named for follows.
+public struct Follow: Decodable, Sendable {
+    public let createdAt: String
+    public let subject: String
+}

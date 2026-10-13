@@ -496,3 +496,36 @@ private let commentPage = """
 
     #expect(comment.author == nil)
 }
+
+// Shaped like a real sh.tangled.graph.listFollows response. The subject of each
+// record is the account asked about, and the record's own repository is the
+// follower, which is how the direction is read.
+private let followPage = """
+{
+  "cursor": "00065dad9ba0dc800002839e",
+  "items": [
+    {
+      "cid": "bafyreifgdlgv7mlcozzpsah7a623c2sju3hmwhybuabuptdik7km32awke",
+      "uri": "at://did:plc:kbrasrfypw7m4hfmcgt272vn/sh.tangled.graph.follow/3mxpl6mtjrv22",
+      "value": {
+        "$type": "sh.tangled.graph.follow",
+        "createdAt": "2026-10-13T01:33:23+03:00",
+        "subject": "did:plc:wshs7t2adsemcrrd4snkeqli"
+      }
+    }
+  ],
+  "total": 2282
+}
+"""
+
+@Test func decodesAPageOfFollowers() throws {
+    let page = try JSONDecoder().decode(RecordPage<Follow>.self, from: Data(followPage.utf8))
+
+    #expect(page.items.count == 1)
+    #expect(page.cursor == "00065dad9ba0dc800002839e")
+
+    let record = try #require(page.items.first)
+    #expect(record.value.subject == "did:plc:wshs7t2adsemcrrd4snkeqli")
+    #expect(record.value.createdAt == "2026-10-13T01:33:23+03:00")
+    #expect(ATURI.owner(of: record.uri) == "did:plc:kbrasrfypw7m4hfmcgt272vn")
+}

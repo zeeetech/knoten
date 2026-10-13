@@ -176,4 +176,23 @@ public struct TangledClient: Sendable {
             on: api
         )
     }
+
+    /// sh.tangled.graph.listFollows: the accounts that follow `subject`, one
+    /// follow record each, newest first. Despite the name it reads the
+    /// followers, not the accounts followed.
+    public func listFollows(
+        subject: String,
+        cursor: String? = nil,
+        limit: Int? = nil
+    ) async -> KnotenResult<RecordPage<Follow>> {
+        await client.publicGet(
+            Tangled.graphListFollows,
+            params: [
+                "subject": subject,
+                "cursor": cursor,
+                "limit": limit.map(String.init),
+            ].compactMapValues { $0 },
+            on: api
+        )
+    }
 }

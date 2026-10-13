@@ -17,4 +17,5 @@ public enum Tangled {
     public static let knotListKnots = "sh.tangled.knot.listKnots"
     public static let feedGetTimeline = "sh.tangled.feed.getTimeline"
     public static let feedListComments = "sh.tangled.feed.listComments"
+    public static let graphListFollows = "sh.tangled.graph.listFollows"
 }
