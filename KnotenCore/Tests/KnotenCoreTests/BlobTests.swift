@@ -64,7 +64,10 @@ actor RequestBox {
         tokenEndpoint: URL(string: "https://pds.tngl.sh/oauth/token")!,
         dpopKey: DPoPKey().rawRepresentation
     )
-    let loader = BlobLoader(client: XRPCClient(store: SessionStore(session: session), transport: transport))
+    let loader = BlobLoader(
+        client: XRPCClient(store: SessionStore(session: session), transport: transport),
+        cache: MemoryBlobCache()
+    )
     let blob = try JSONDecoder().decode(BlobRef.self, from: Data(blobRef.utf8))
 
     let result = await loader.fetch(blob, did: "did:plc:repodid0000000000000000000000aa", pds: pds)
@@ -74,9 +77,43 @@ actor RequestBox {
     #expect(request.url?.host == "pds.tngl.sh")
     #expect(request.url?.path == "/xrpc/com.atproto.sync.getBlob")
 
+    // The token is bound to the account's PDS, so it must not travel to a
+    // different host, not even the one that owns the blob.
+    #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+    #expect(request.value(forHTTPHeaderField: "DPoP") == nil)
+
     let url = try #require(request.url)
     let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
     let query = try #require(components?.queryItems)
     #expect(query.first { $0.name == "did" }?.value == "did:plc:repodid0000000000000000000000aa")
     #expect(query.first { $0.name == "cid" }?.value == "bafkreihxqvvqpmvi5gecgltkpdzhcsjsnywuoykgsqryawuuhefusm3z4m")
+}
+
+@Test func servesASecondFetchFromTheCache() async throws {
+    let pds = URL(string: "https://pds.tngl.sh")!
+    let calls = Counter()
+    let transport = StubTransport { request in
+        _ = await calls.next()
+        return .success(http(request.url, 200, body: "PNG-BYTES"))
+    }
+
+    let session = OAuthSession(
+        did: "did:plc:owner000000000000000000000000",
+        accessToken: "token",
+        serviceURL: pds,
+        issuer: pds,
+        tokenEndpoint: URL(string: "https://pds.tngl.sh/oauth/token")!,
+        dpopKey: DPoPKey().rawRepresentation
+    )
+    let loader = BlobLoader(
+        client: XRPCClient(store: SessionStore(session: session), transport: transport),
+        cache: MemoryBlobCache()
+    )
+    let blob = try JSONDecoder().decode(BlobRef.self, from: Data(blobRef.utf8))
+
+    _ = await loader.fetch(blob, did: "did:plc:repodid0000000000000000000000aa", pds: pds)
+    let second = await loader.fetch(blob, did: "did:plc:repodid0000000000000000000000aa", pds: pds)
+
+    #expect(second.value == Data("PNG-BYTES".utf8))
+    #expect(await calls.value == 1)
 }
