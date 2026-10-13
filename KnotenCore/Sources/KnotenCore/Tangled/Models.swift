@@ -315,10 +315,7 @@ public struct FeedComment: Decodable, Sendable {
     /// The author's DID: the repository the comment record lives in. The feed
     /// sends no handle, so this is the only identity on the wire.
     public var author: String? {
-        guard uri.hasPrefix("at://") else { return nil }
-        let parts = uri.dropFirst("at://".count).split(separator: "/", omittingEmptySubsequences: true)
-        guard parts.count >= 3 else { return nil }
-        return String(parts[0])
+        ATURI.owner(of: uri)
     }
 }
 
