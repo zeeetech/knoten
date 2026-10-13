@@ -47,11 +47,14 @@ public struct KeychainSessionStorage: SessionStorage {
     }
 }
 
-/// In memory storage for tests and previews.
+/// In memory storage for tests and previews. Seeding it starts from a session
+/// instead of a login.
 public actor InMemorySessionStorage: SessionStorage {
     private var stored: OAuthSession?
 
-    public init() {}
+    public init(_ session: OAuthSession? = nil) {
+        stored = session
+    }
 
     public func save(_ session: OAuthSession) async -> KnotenResult<Void> {
         stored = session
