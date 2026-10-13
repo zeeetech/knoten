@@ -6,3 +6,4 @@ DerivedData/
 *.xcodeproj
 xcuserdata/
 *.xcworkspace
+App/Sources/Knoten/Info.plist
